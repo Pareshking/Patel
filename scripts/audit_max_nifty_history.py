@@ -98,7 +98,7 @@ def main() -> None:
     assert observed_starts == EXPECTED_STARTS, f"unexpected maximum-history starts: {observed_starts}"
 
     events = read("official_2026_interim_events.csv")
-    assert len(events) == 246, f"expected 246 official override/event rows, got {len(events)}"
+    assert len(events) == 250, f"expected 250 official override/event rows, got {len(events)}"
     for row in events:
         assert row["index"] in TARGETS, f"unknown index in official events: {row['index']}"
         parse_day(row["event_announcement_date"])
@@ -119,7 +119,7 @@ def main() -> None:
     effective = read("effective_intervals_2026-10-02.csv")
     effective_counts = Counter(row["index"] for row in effective)
     print("EFFECTIVE_INTERVALS", effective_counts)
-    assert len(effective) == 2517, f"unexpected effective interval rows: {len(effective)}"
+    assert len(effective) == 2521, f"unexpected effective interval rows: {len(effective)}"
     assert not any(row["symbol"].strip().upper().startswith("DUMMY") for row in effective)
     effective_grouped: dict[tuple[str, str], list[tuple[date, date | None]]] = defaultdict(list)
     for row in effective:
@@ -154,15 +154,17 @@ def main() -> None:
     for checkpoint in ("2024-09-30", "2024-10-01", "2025-03-28", "2025-09-30", "2026-03-30", "2026-09-30", "2026-10-02"):
         counts = Counter(index for index, _ in members_on(effective, checkpoint))
         print("CHECKPOINT_COUNTS", checkpoint, {index: counts[index] for index in TARGETS})
+        if checkpoint == "2026-03-30":
+            assert counts == Counter(TARGETS), f"Block 01 boundary cardinality mismatch: {counts}"
 
     application_audit = read("event_application_audit.csv")
     assert len(application_audit) == len(events) == 246
     application_counts = Counter(row["application_result"] for row in application_audit)
     expected_application_counts = Counter({
-        "APPLIED_ADD": 114,
-        "APPLIED_REMOVE": 113,
+        "APPLIED_ADD": 118,
+        "APPLIED_REMOVE": 117,
         "NOOP_DUMMY_EXCLUDED": 10,
-        "NOOP_REMOVE_NOT_ACTIVE": 7,
+        "NOOP_REMOVE_NOT_ACTIVE": 3,
         "NOOP_ADD_ALREADY_ACTIVE": 2,
     })
     print("EVENT_APPLICATION_RESULTS", application_counts)

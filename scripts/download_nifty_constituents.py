@@ -124,50 +124,57 @@ for name, url in SOURCES.items():
         f"parsed_rows={len(symbols)}"
     )
 
-# Validate exact sizes except Smallcap 250. The raw source snapshot is retained
-# because the official download may contain an extra appended row.
+# Validate exact sizes for Nifty 50 / Next 50 / Midcap 150.
+# Hierarchy files are audited below without silently trimming source rows.
 for name, (_, symbols, data_rows, meta) in downloaded.items():
     expected = EXPECTED_ROWS[name]
-    if name == "NIFTYSMALLCAP250":
+    if name in {"NIFTYSMALLCAP250", "NIFTYMICROCAP250", "NIFTY500"}:
         if len(symbols) < expected:
-            raise RuntimeError(
-                f"{name}: fewer than {expected} constituents: {len(symbols)}"
-            )
+            raise RuntimeError(f"{name}: fewer than {expected} rows: {len(symbols)}")
     elif len(symbols) != expected:
-        extra = data_rows[expected:] if len(data_rows) > expected else []
-        raise RuntimeError(
-            f"{name}: expected {expected} constituents, got {len(symbols)}; "
-            f"extra_candidate_rows={extra!r}"
-        )
+        raise RuntimeError(f"{name}: expected {expected} rows, got {len(symbols)}")
 
     if len(set(symbols)) != len(symbols):
         raise RuntimeError(f"{name}: duplicate symbols detected")
 
     manifest["sources"][name] = meta
-
-# Cross-check Smallcap 250 and Microcap 250 against the parent Nifty 500
-# Preserve raw evidence; do not silently trim the official files to the named index size.
+    if len(symbols) != expected:
+        manifest["sources"][name]["row_count_status"] = f"EXPECTED_{expected}_ACTUAL_{len(symbols)}"
+# Audit hierarchy relationships without discarding official raw rows.
 n500_symbols = set(downloaded["NIFTY500"][1])
 
-def audit_child(name: str) -> dict:
+def symbol_rows(name: str) -> tuple[list[str], list[list[str]]]:
     _, symbols, rows, _ = downloaded[name]
     header = rows[0]
     symbol_col = next(i for i, h in enumerate(header) if h.strip().lower() == "symbol")
-    child_symbols = [
-        r[symbol_col].strip()
-        for r in rows[1:]
-        if symbol_col < len(r) and r[symbol_col].strip()
-    ]
+    data = [r for r in rows[1:] if any(cell.strip() for cell in r)]
+    return (
+        [r[symbol_col].strip() for r in data if symbol_col < len(r) and r[symbol_col].strip()],
+        data,
+    )
+
+def hierarchy_audit(name: str) -> dict:
+    symbols, rows = symbol_rows(name)
     return {
-        "raw_rows": len(child_symbols),
-        "unique_rows": len(set(child_symbols)),
-        "overlap_with_nifty500": sorted(set(child_symbols) & n500_symbols),
-        "outside_nifty500": sorted(set(child_symbols) - n500_symbols),
+        "raw_rows": len(symbols),
+        "unique_rows": len(set(symbols)),
+        "overlap_with_nifty500": sorted(set(symbols) & n500_symbols),
+        "outside_nifty500": sorted(set(symbols) - n500_symbols),
+        "tail_rows": rows[-10:],
     }
 
-manifest["smallcap250_parent_crosscheck"] = audit_child("NIFTYSMALLCAP250")
-manifest["microcap250_parent_crosscheck"] = audit_child("NIFTYMICROCAP250")
+manifest["smallcap250_parent_crosscheck"] = hierarchy_audit("NIFTYSMALLCAP250")
+manifest["microcap250_parent_crosscheck"] = hierarchy_audit("NIFTYMICROCAP250")
 
+# Nifty 500 itself is audited for any rows beyond the nominal 500.
+n500_rows = symbol_rows("NIFTY500")[0]
+manifest["nifty500_row_audit"] = {
+    "raw_rows": len(n500_rows),
+    "unique_rows": len(set(n500_rows)),
+    "tail_symbols": n500_rows[-10:],
+}
+
+print("NIFTY500_AUDIT", json.dumps(manifest["nifty500_row_audit"]))
 print("SMALLCAP250_AUDIT", json.dumps(manifest["smallcap250_parent_crosscheck"]))
 print("MICROCAP250_AUDIT", json.dumps(manifest["microcap250_parent_crosscheck"]))
 (OUT / "manifest.json").write_text(

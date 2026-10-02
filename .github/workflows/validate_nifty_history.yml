@@ -5,6 +5,7 @@ on:
     paths:
       - 'data/nifty_index_history/max_history/**'
       - 'scripts/audit_max_nifty_history.py'
+      - 'scripts/build_effective_nifty_history.py'
   workflow_dispatch:
 
 jobs:
@@ -15,5 +16,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
+      - name: Rebuild latest half-year backward from official anchor
+        run: python scripts/build_effective_nifty_history.py
       - name: Audit Nifty history layer
         run: python scripts/audit_max_nifty_history.py

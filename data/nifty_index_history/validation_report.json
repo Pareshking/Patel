@@ -1,0 +1,93 @@
+{
+  "anchor_date": "2026-10-02",
+  "canonical_counts": {
+    "Nifty 50": 50,
+    "Nifty Next 50": 50,
+    "Nifty Midcap 150": 150,
+    "Nifty Smallcap 250": 250,
+    "Nifty Microcap 250": 250
+  },
+  "source_event_count_2024_2026": 1417,
+  "pit_interval_count_2024_2026": 1462,
+  "extended_pit_interval_count": 2522,
+  "extended_starts": {
+    "Nifty 50": "2014-01-01",
+    "Nifty Next 50": "2014-01-01",
+    "Nifty Midcap 150": "2016-04-01",
+    "Nifty Smallcap 250": "2016-04-01",
+    "Nifty Microcap 250": "2019-04-01"
+  },
+  "september_30_2026_reconciliation": {
+    "Nifty 50": {
+      "adds": 1,
+      "removes": 1
+    },
+    "Nifty Next 50": {
+      "adds": 5,
+      "removes": 5
+    },
+    "Nifty Midcap 150": {
+      "adds": 13,
+      "removes": 13
+    },
+    "Nifty Smallcap 250": {
+      "adds": 33,
+      "removes": 33
+    },
+    "Nifty Microcap 250": {
+      "adds": 59,
+      "removes": 59
+    }
+  },
+  "floyd_current_crosscheck": {
+    "Nifty 50": {
+      "date": "2026-10-01",
+      "count": 50,
+      "matches_oct02_anchor": true
+    },
+    "Nifty Next 50": {
+      "date": "2026-10-01",
+      "count": 50,
+      "matches_oct02_anchor": true
+    },
+    "Nifty Midcap 150": {
+      "date": "2026-10-01",
+      "count": 150,
+      "matches_oct02_anchor": true
+    },
+    "Nifty Smallcap 250": {
+      "date": "2026-10-01",
+      "count": 250,
+      "matches_oct02_anchor": true
+    }
+  },
+  "provisional": {
+    "index": "Nifty Smallcap 250",
+    "observed_date": "2026-05-31",
+    "changes": [
+      [
+        "REMOVE",
+        "MOTHERSON"
+      ],
+      [
+        "ADD",
+        "CIEINDIA"
+      ],
+      [
+        "ADD",
+        "MSUMI"
+      ]
+    ],
+    "status": "provisional",
+    "reason": "Floyd snapshot confirms the composition by 2026-05-31; exact NSE effective date was not independently resolved in this pass."
+  },
+  "symbol_change": {
+    "index": "Nifty Smallcap 250",
+    "from": "HEG",
+    "to": "HEGAM",
+    "effective_date": "2026-09-22",
+    "status": "independent cross-check"
+  },
+  "dummy_policy": "No DUMMY* symbol is present in canonical PIT outputs.",
+  "known_reconstruction_artifact": "One redundant inferred snapshot add (GSPL, 2026-03-31) was removed from the event ledger because GSPL was already active from an official interval through 2026-05-12."
+}

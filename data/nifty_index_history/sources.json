@@ -1,0 +1,34 @@
+{
+  "generated_at_utc": "2026-10-02",
+  "anchor_date": "2026-10-02",
+  "anchor_manifest_path": "data/nifty_index_history/current/manifest.json",
+  "anchor_manifest_git_sha": "f4fa6e76a680c54c9267c98874daf28d4075faf4",
+  "primary_reconstruction": {
+    "repository": "yurukatsu/nse-historical-membership",
+    "commit": "6695e8468c42ed5222265a5078a53a298cec88f7",
+    "path": "index_history/data/index_membership_history.csv",
+    "blob_sha": "519a9232e125cc044580ec7b90ef5c18475b4f0f",
+    "raw_url": "https://raw.githubusercontent.com/yurukatsu/nse-historical-membership/6695e8468c42ed5222265a5078a53a298cec88f7/index_history/data/index_membership_history.csv",
+    "source_data_license": "CC BY 4.0",
+    "use": "first-pass PIT reconstruction and provenance-linked event source"
+  },
+  "official": {
+    "current_rebalance_schedule": "https://www.niftyindices.com/resources/index-rebalancing-schedule",
+    "media_archive": "https://www.niftyindices.com/media",
+    "sep30_2026_rebalance": "https://www.niftyindices.com/Press_Release/ind_prs10082026.pdf",
+    "vedanta_apr23_2026": "https://www.niftyindices.com/Press_Release/ind_prs23042026.pdf",
+    "vedanta_jun17_2026": "https://www.niftyindices.com/Press_Release/ind_prs17062026.pdf",
+    "vedanta_jun19_2026": "https://www.niftyindices.com/Press_Release/ind_prs19062026.pdf",
+    "vedanta_jun22_2026": "https://www.niftyindices.com/Press_Release/ind_prs22062026.pdf",
+    "allcargo_jul20_2026": "https://www.niftyindices.com/Press_Release/ind_prs20072026.pdf",
+    "jul13_2026_replacement": "https://www.niftyindices.com/Press_Release/ind_prs13072026_1.pdf"
+  },
+  "independent_crosschecks": {
+    "floyd_repo": "https://github.com/floyds1995/Auto-Index-Constituents-Tracker",
+    "floyd_smallcap_history": "https://github.com/floyds1995/Auto-Index-Constituents-Tracker/blob/main/NSE/Nifty_Smallcap_250.csv",
+    "floyd_symbolchange": "https://github.com/floyds1995/Auto-Index-Constituents-Tracker/blob/main/NSE/RawData/symbolchange.csv",
+    "bkkb_repo": "https://github.com/BKKB20/nse-index-history",
+    "bkkb_xlsx": "https://github.com/BKKB20/nse-index-history/blob/main/NSE_INDEX_HISTORY_FINAL_V3.xlsx"
+  },
+  "canonical_rule": "Exclude every symbol whose ticker begins with DUMMY (case-insensitive); preserve official raw snapshots separately."
+}

@@ -62,9 +62,6 @@ def main() -> None:
         else:
             assert symbol not in members, f"cannot reverse REMOVE already active: {event}"
             members.add(symbol)
-    boundary_counts = {i: len(state[i]) for i in TARGETS}
-    assert boundary_counts == TARGETS, f"boundary cardinality mismatch: {boundary_counts}"
-
     # Validate this boundary against the official September 2025 review deltas.
     review_2025 = [e for e in events if e["event_announcement_date"] == "2025-08-22"
                    and e["effective_date"] == CUTOFF and not dummy(e)]

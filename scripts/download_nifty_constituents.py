@@ -92,11 +92,12 @@ def fetch_csv(name: str, url: str) -> tuple[bytes, list[str], list[list[str]], d
         )
 
     data_rows = [r for r in rows[1:] if any(cell.strip() for cell in r)]
-    symbols = [
+    raw_symbols = [
         r[symbol_col].strip()
         for r in data_rows
         if symbol_col < len(r) and r[symbol_col].strip()
     ]
+    symbols = [x for x in raw_symbols if not x.upper().startswith("DUMMY")]
 
     meta = {
         "url": url,
@@ -104,7 +105,9 @@ def fetch_csv(name: str, url: str) -> tuple[bytes, list[str], list[list[str]], d
         "http_status": response.status_code,
         "content_type": response.headers.get("content-type"),
         "bytes": len(raw),
+        "raw_rows": len(raw_symbols),
         "rows": len(symbols),
+        "dummy_rows_removed": len(raw_symbols) - len(symbols),
         "sha256": sha256(raw),
         "columns": header,
     }
@@ -121,18 +124,19 @@ for name, url in SOURCES.items():
     print(
         f"{name}: http={meta['http_status']} final_url={meta['final_url']} "
         f"content_type={meta['content_type']} bytes={meta['bytes']} "
-        f"parsed_rows={len(symbols)}"
+        f"raw_rows={meta['raw_rows']} canonical_rows={len(symbols)} "
+        f"dummy_rows_removed={meta['dummy_rows_removed']}"
     )
 
 # Validate exact sizes for Nifty 50 / Next 50 / Midcap 150.
 # Hierarchy files are audited below without silently trimming source rows.
 for name, (_, symbols, data_rows, meta) in downloaded.items():
     expected = EXPECTED_ROWS[name]
-    if name in {"NIFTYSMALLCAP250", "NIFTYMICROCAP250", "NIFTY500"}:
-        if len(symbols) < expected:
-            raise RuntimeError(f"{name}: fewer than {expected} rows: {len(symbols)}")
-    elif len(symbols) != expected:
-        raise RuntimeError(f"{name}: expected {expected} rows, got {len(symbols)}")
+    if len(symbols) != expected:
+        raise RuntimeError(
+            f"{name}: expected {expected} canonical constituents after "
+            f"DUMMY* exclusion, got {len(symbols)}"
+        )
 
     if len(set(symbols)) != len(symbols):
         raise RuntimeError(f"{name}: duplicate symbols detected")

@@ -155,7 +155,24 @@ def main() -> None:
         counts = Counter(index for index, _ in members_on(effective, checkpoint))
         print("CHECKPOINT_COUNTS", checkpoint, {index: counts[index] for index in TARGETS})
 
-    print("AUDIT PASS: source intervals, effective interval integrity, current anchor identity, provenance, and DUMMY* exclusion")
+    application_audit = read("event_application_audit.csv")
+    assert len(application_audit) == len(events) == 246
+    application_counts = Counter(row["application_result"] for row in application_audit)
+    expected_application_counts = Counter({
+        "APPLIED_ADD": 114,
+        "APPLIED_REMOVE": 113,
+        "NOOP_DUMMY_EXCLUDED": 10,
+        "NOOP_REMOVE_NOT_ACTIVE": 7,
+        "NOOP_ADD_ALREADY_ACTIVE": 2,
+    })
+    print("EVENT_APPLICATION_RESULTS", application_counts)
+    assert application_counts == expected_application_counts, (
+        f"event application ledger drift: {application_counts}"
+    )
+    assert all(row["source_url"].startswith("https://") for row in application_audit)
+    assert all(row["application_result"] for row in application_audit)
+
+    print("AUDIT PASS: source intervals, effective interval integrity, exact current anchor identity, event application audit, provenance, and DUMMY* exclusion")
 
 if __name__ == "__main__":
     main()

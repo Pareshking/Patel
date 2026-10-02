@@ -12,9 +12,9 @@
     "NIFTYSMALLCAP250": 250,
     "NIFTYMICROCAP250": 250
   },
-  "target_interval_rows": 2404,
+  "target_interval_rows": 2403,
   "candidate_event_rows": 2611,
   "official_2026_event_rows": 246,
   "dummy_event_rows": 10,
-  "note": "Maximum-history reconstruction. Official current snapshots and primary-source event overrides are kept distinct from third-party/inferred intervals. Smallcap identity corrections use official 2025 review evidence for MSUMI and official NSE corporate-action/symbol evidence for the HEG/HEGAM continuation; DUMMY* records remain excluded from canonical membership."
+  "note": "Maximum-history reconstruction. Official current snapshots and primary-source event overrides are kept distinct from third-party/inferred intervals. Smallcap identity corrections use official 2025 review evidence for MSUMI and official NSE corporate-action/symbol evidence for the HEG/HEGAM continuation; duplicate overlapping GSPL snapshot evidence removed. DUMMY* records remain excluded from canonical membership."
 }

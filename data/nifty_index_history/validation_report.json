@@ -9,13 +9,13 @@
   },
   "source_event_count_2024_2026": 1417,
   "pit_interval_count_2024_2026": 1462,
-  "extended_pit_interval_count": 2483,
+  "extended_pit_interval_count": 2522,
   "extended_starts": {
     "Nifty 50": "2014-01-01",
     "Nifty Next 50": "2014-01-01",
-    "Nifty Midcap 150": "2014-01-01",
-    "Nifty Smallcap 250": "2014-01-01",
-    "Nifty Microcap 250": "2021-10-01"
+    "Nifty Midcap 150": "2016-04-01",
+    "Nifty Smallcap 250": "2016-04-01",
+    "Nifty Microcap 250": "2019-04-01"
   },
   "september_30_2026_reconciliation": {
     "Nifty 50": {

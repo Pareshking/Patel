@@ -29,9 +29,9 @@ These results reinforce the provenance policy: Floyd is an independent diagnosti
 
 ## 2026-10-02 anchor reconciliation observations
 
-The official current snapshots all match target cardinalities after excluding DUMMY*: 50 / 50 / 150 / 250 / 250. The upstream state at its 2026-05-15 boundary reconciles exactly to the Oct-2 anchor for Nifty 50, Next 50 and Midcap 150 after applying the official 2026 events captured in this layer. Smallcap and Microcap still surface corporate-action / identity transitions that require an explicit primary-source mapping before calling the whole chain fully reconciled:
+The official current snapshots all match target cardinalities after excluding DUMMY*: 50 / 50 / 150 / 250 / 250. After applying the captured official 2026 events from May onward, Nifty 50, Next 50 and Midcap 150 reconcile exactly to the Oct-2 anchor; Microcap also reconciles to 250 once the complete September 2026 exclusion list is applied. Smallcap still surfaces symbol/identity transitions that require explicit primary-source mapping before calling the whole chain fully reconciled:
 
 - Smallcap: HEG vs current HEGAM, MOTHERSON vs current MSUMI, and the May-2026 GSPL to CIEINDIA replacement require symbol/identity treatment in the final PIT chain.
-- Microcap: the upstream May-15 state is one row above target because the September 2026 THANGAMAYL exclusion must be applied; the remaining current-anchor transition should be finalized against the exact post-demerger identity chain.
+- Microcap: the upstream May-15 state is one row above target until the September 2026 THANGAMAYL exclusion is applied; after that correction the canonical count reaches the Oct-2 target of 250.
 
 No third-party discrepancy was silently promoted to an authoritative event.

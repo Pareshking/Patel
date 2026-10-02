@@ -76,13 +76,15 @@ def main() -> None:
     }
     review_counts = Counter((e["index"], e["action"]) for e in review_2025)
     assert review_counts == expected_review_counts, f"September 2025 official review coverage mismatch: {review_counts}"
+    review_mismatches = []
     for event in review_2025:
         members = state[event["index"]]
         symbol = event["symbol"].strip().upper()
-        if event["action"] == "ADD":
-            assert symbol in members, f"official September 2025 addition absent at boundary: {event}"
-        else:
-            assert symbol not in members, f"official September 2025 removal still active at boundary: {event}"
+        if event["action"] == "ADD" and symbol not in members:
+            review_mismatches.append(f"missing addition {event['index']}/{symbol}")
+        elif event["action"] == "REMOVE" and symbol in members:
+            review_mismatches.append(f"removed symbol still active {event['index']}/{symbol}")
+    assert not review_mismatches, f"September 2025 official review identity mismatches: {review_mismatches}"
 
     checkpoint_rows = [
         {"index": index, "symbol": symbol, "as_of_date": CUTOFF,

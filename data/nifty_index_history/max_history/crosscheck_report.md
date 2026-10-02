@@ -23,30 +23,34 @@ Source: https://github.com/floyds1995/Auto-Index-Constituents-Tracker, retrieved
 | NIFTYSMALLCAP250 | 2024-09-30 | 276 | 250 | 244 | Floyd snapshot contains 26 more rows; not used as canonical evidence. |
 | NIFTYSMALLCAP250 | 2025-03-31 | 250 | 250 | 220 | Material composition difference; requires primary-source event reconciliation. |
 | NIFTYSMALLCAP250 | 2025-09-30 | 248 | 250 | 216 | Material composition difference; requires primary-source event reconciliation. |
-| NIFTYSMALLCAP250 | 2026-03-31 | 250 | 250 | 249 | One symbol difference: MSUMI vs MOTHERSON; do not assume these are aliases. |
+| NIFTYSMALLCAP250 | 2026-03-31 | 250 | 250 | 249 | The prior mismatch was MOTHERSON vs MSUMI. These are distinct securities; the upstream MOTHERSON interval was corrected to MSUMI using the official September 2025 review. |
 
-These results reinforce the provenance policy: Floyd is an independent diagnostic source, not a replacement for NSE/Nifty primary releases. The Smallcap discrepancies are too large to merge mechanically.
+These results reinforce the provenance policy: Floyd is an independent diagnostic source, not a replacement for NSE/Nifty primary releases. Large Smallcap composition differences in earlier checkpoints remain a historical reconciliation task and have not been merged mechanically.
 
 ## 2026-10-02 anchor reconciliation observations
 
-The official current snapshots all match target cardinalities after excluding DUMMY*: 50 / 50 / 150 / 250 / 250. After applying the captured official 2026 events from May onward, Nifty 50, Next 50 and Midcap 150 reconcile exactly to the Oct-2 anchor; Microcap also reconciles to 250 once the complete September 2026 exclusion list is applied. Smallcap still has unresolved historical identity/composition transitions, so the full chain is not yet certified as reconciled.
+The official current snapshots all match target cardinalities after excluding DUMMY*: 50 / 50 / 150 / 250 / 250. Official 2026 events and the latest primary-source identity corrections are stored separately from the first-pass intervals. The point-in-time history is a maximum-history reconstruction, not a claim that every earlier checkpoint has been independently proven against a complete set of archived official constituents.
 
-### HEG / HEGAM: corporate action, not a simple ticker alias
+### MOTHERSON / MSUMI: resolved as distinct securities
 
-NSE Indices' primary release dated 2026-09-03 says HEG Ltd. demerged its graphite business into the resulting company HEG Graphite Ltd. It states that the resulting entity was represented by the temporary symbol DUMMYHEG at zero price in affected indices effective 2026-09-07 (close of 2026-09-04). Source: https://www.niftyindices.com/Press_Release/ind_prs03092026.pdf
+NSE Indices' 2025-08-22 broad-market review says changes take effect 2025-09-30 (close of 2025-09-29). It explicitly excludes Motherson Sumi Wiring India Ltd. (MSUMI) from Nifty Midcap 150 and includes MSUMI in Nifty Smallcap 250. Source: https://www.niftyindices.com/Press_Release/ind_prs22082025.pdf
 
-Therefore, do not model HEG -> HEGAM as a simple rename without the exchange's resulting-security/listing and effective-date evidence. The current 2026-10-02 Smallcap anchor contains HEGAM, but the exact point-in-time transition from the temporary dummy record to the live symbol still needs primary-source verification. DUMMYHEG remains excluded from canonical membership under the explicit DUMMY* rule.
+The upstream Smallcap interval had incorrectly used MOTHERSON from 2025-09-30. MOTHERSON is Samvardhana Motherson International Ltd., a distinct security; it is not an alias for MSUMI. The interval has been corrected to MSUMI from 2025-09-30 using the official review source. The official current anchor separately places MOTHERSON in Nifty Next 50 and MSUMI in Nifty Smallcap 250.
 
-### MOTHERSON / MSUMI: do not alias
+### HEG / HEGAM: continuing security plus separate demerger entity
 
-The Smallcap cross-check reports MOTHERSON versus MSUMI. These must not be silently treated as the same security or merged as a ticker alias. Resolve the historical membership difference using the applicable official index review/replacement notice and record the actual ADD/REMOVE effective date. Until that primary evidence is attached, mark the historical event unresolved rather than guessing.
+NSE Indices' primary release dated 2026-09-03 says HEG Ltd. demerged its graphite business into the resulting company HEG Graphite Ltd. It states that the resulting entity was represented by temporary symbol DUMMYHEG at zero price in affected indices effective 2026-09-07 (close of 2026-09-04). Source: https://www.niftyindices.com/Press_Release/ind_prs03092026.pdf
 
-### Other unresolved event
+NSE's security page identifies HEGAM as HEG Advanced Materials Ltd. with ISIN INE545A01024, the same ISIN shown in NSE filings for the pre-demerger HEG Ltd. security. Source: https://www.nseindia.com/get-quote/equity/HEGAM/HEG-Advanced-Materials-Limited
 
-The May-2026 GSPL/CIEINDIA discrepancy remains an event-level reconciliation target; do not infer an effective date from a third-party snapshot alone.
+The canonical interval therefore retains the historical HEG symbol through 2026-09-04 and records the continuing security as HEGAM from 2026-09-07. DUMMYHEG remains a separate demerger placeholder in the official event ledger and is excluded from canonical membership by the DUMMY* rule.
+
+### GSPL / CIEINDIA: official replacement captured
+
+The official 2026-05-04 release records CIEINDIA added to Nifty Smallcap 250 and GSPL removed, effective 2026-05-12. Source: https://www.niftyindices.com/Press_Release/ind_prs04052026.pdf. Both the event ledger and interval boundaries carry this replacement; it is no longer an unverified inference.
 
 ### Microcap count reconciliation
 
 The upstream May-15 state is one row above target until the September 2026 THANGAMAYL exclusion is applied; after that correction the canonical count reaches the Oct-2 target of 250.
 
-No third-party discrepancy was silently promoted to an authoritative event.
+The unresolved work is now the material historical composition differences in the Smallcap 250 and smaller checkpoint-level gaps in other indices. Those require further official dated constituent lists/replacement notices; do not manufacture events from third-party snapshots.

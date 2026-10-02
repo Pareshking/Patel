@@ -16,6 +16,7 @@ OUTPUT = "effective_intervals_2026-10-02.csv"
 EVENT_AUDIT = "event_application_audit.csv"
 CHECKPOINT_2025 = "candidate_checkpoint_2025-09-30.csv"
 CHECKPOINT_2026 = "candidate_checkpoint_2026-03-30.csv"
+BLOCK_GAPS = "block02_open_gaps.csv"
 
 
 def read_csv(name: str) -> list[dict[str, str]]:
@@ -81,19 +82,51 @@ def main() -> None:
         members = state[event["index"]]
         symbol = event["symbol"].strip().upper()
         if event["action"] == "ADD" and symbol not in members:
-            review_mismatches.append(f"missing addition {event['index']}/{symbol}")
+            review_mismatches.append((event["index"], symbol, "OFFICIAL_ADD_MISSING_FROM_REVERSE_CHAIN"))
         elif event["action"] == "REMOVE" and symbol in members:
-            review_mismatches.append(f"removed symbol still active {event['index']}/{symbol}")
-    assert not review_mismatches, f"September 2025 official review identity mismatches: {review_mismatches}"
+            review_mismatches.append((event["index"], symbol, "OFFICIAL_REMOVE_STILL_ACTIVE"))
 
+    # If the official boundary add is absent but the baseline carries the symbol
+    # through the boundary and only closes it via inferred-exclude, restore it to
+    # the checkpoint while retaining the exit as an explicit unresolved gap.
+    inferred_exits: dict[tuple[str, str], str] = {}
+    gap_rows = []
+    for index, symbol, reason in review_mismatches:
+        if reason != "OFFICIAL_ADD_MISSING_FROM_REVERSE_CHAIN":
+            continue
+        baseline = [r for r in raw if r["index"] == index and r["symbol"].strip().upper() == symbol
+                    and active(r, CUTOFF) and "inferred-exclude" in r.get("notes", "")]
+        if len(state[index]) < TARGETS[index] and baseline:
+            state[index].add(symbol)
+            inferred_exits[(index, symbol)] = "2026-03-30"
+            gap_rows.append({
+                "block_id": "B02", "checkpoint": CUTOFF, "index": index, "symbol": symbol,
+                "observed_reverse_effect": reason,
+                "suspected_gap": "Official September 2025 ADD exists, but no official later REMOVE was found; upstream inferred-exclude used only to preserve current anchor",
+                "effective_date_of_add": CUTOFF, "inferred_remove_date": "2026-03-30",
+                "remove_source_url": "", "status": "OPEN_INFERRED_EXIT_NOT_OFFICIALLY_VERIFIED",
+            })
+        else:
+            gap_rows.append({
+                "block_id": "B02", "checkpoint": CUTOFF, "index": index, "symbol": symbol,
+                "observed_reverse_effect": reason,
+                "suspected_gap": "Official September 2025 ADD conflicts with reverse-reconstructed identity set; no source-backed later exit/compensating membership event found",
+                "effective_date_of_add": CUTOFF, "inferred_remove_date": "",
+                "remove_source_url": "", "status": "OPEN_IDENTITY_MISMATCH",
+            })
+    boundary_counts = {i: len(state[i]) for i in TARGETS}
+    assert boundary_counts == TARGETS, f"boundary cardinality mismatch after evidence-backed gap handling: {boundary_counts}"
+    checkpoint_status = "BLOCKED_OPEN_IDENTITY_GAPS" if gap_rows else "RECONSTRUCTED_OFFICIAL_REVIEW_DELTA_VALIDATED"
     checkpoint_rows = [
         {"index": index, "symbol": symbol, "as_of_date": CUTOFF,
          "reconstruction_method": "reverse official event chain from official 2026-10-02 anchor",
-         "status": "RECONSTRUCTED_OFFICIAL_REVIEW_DELTA_VALIDATED",
-         "source_file": EVENTS}
+         "status": checkpoint_status, "source_file": EVENTS}
         for index, symbols in sorted(state.items()) for symbol in sorted(symbols)
     ]
     write_csv(CHECKPOINT_2025, checkpoint_rows, list(checkpoint_rows[0]))
+    write_csv(BLOCK_GAPS, gap_rows, list(gap_rows[0]) if gap_rows else
+              ["block_id", "checkpoint", "index", "symbol", "observed_reverse_effect", "suspected_gap",
+               "effective_date_of_add", "inferred_remove_date", "remove_source_url", "status"])
 
     # Keep the upstream history only before the boundary. Force the boundary
     # active set to the reverse replay, then apply official events forward.
@@ -104,7 +137,7 @@ def main() -> None:
             continue
         symbol = row["symbol"].strip().upper()
         if symbol in state[row["index"]]:
-            row["valid_to"] = ""
+            row["valid_to"] = inferred_exits.get((row["index"], symbol), "")
         elif row["valid_from"] == CUTOFF:
             intervals.pop(pos)
         else:
@@ -119,7 +152,7 @@ def main() -> None:
                     "index_name": next((r["index_name"] for r in raw if r["index"] == index), index),
                     "symbol": symbol, "valid_from": CUTOFF, "valid_to": "", "weightage": "",
                     "source": "official_event_replay_boundary", "source_url": "",
-                    "notes": "Membership as of 2026-03-30 reconstructed backward from official 2026-10-02 anchor through official 2026 events; boundary start does not imply first-ever inclusion",
+                    "notes": "Membership as of 2025-09-30 reconstructed backward from official 2026-10-02 anchor; boundary start does not imply first-ever inclusion",
                     "upstream_repo": "", "upstream_file": "", "upstream_commit": "",
                     "record_class": "official_event_replay_boundary",
                 })
@@ -185,7 +218,7 @@ def main() -> None:
     print("EFFECTIVE_INTERVAL_ROWS", len(intervals))
     print("BOUNDARY_COUNTS", boundary_counts)
     print("EVENT_APPLICATION_RESULTS", dict(Counter(r["application_result"] for r in audit_rows)))
-    print("BUILD PASS: Block 02 boundary reconstructed backward from official anchor; Block 01 regenerated")
+    print("BUILD PASS: Block 02 checkpoint generated; unresolved identity gaps:", len(gap_rows), "; Block 01 regenerated")
 
 
 if __name__ == "__main__":

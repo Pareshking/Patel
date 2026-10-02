@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import csv
 from collections import Counter, defaultdict
+from datetime import date
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1] / "data" / "nifty_index_history" / "max_history"
@@ -45,8 +46,11 @@ def main() -> None:
 
     # Reconstruct the first boundary backwards from the official current anchor.
     reverse_events = [e for e in events if e["effective_date"] > CUTOFF and not dummy(e)]
-    reverse_events.sort(key=lambda e: (e["effective_date"], e["event_announcement_date"],
-                                       0 if e["action"] == "ADD" else 1, e["symbol"]), reverse=True)
+    reverse_events.sort(key=lambda e: (0 if e["action"] == "ADD" else 1, e["symbol"]))
+    reverse_events.sort(key=lambda e: (
+        date.fromisoformat(e["effective_date"]).toordinal(),
+        date.fromisoformat(e["event_announcement_date"]).toordinal(),
+    ), reverse=True)
     for event in reverse_events:
         members, symbol = state[event["index"]], event["symbol"].strip().upper()
         if event["action"] == "ADD":

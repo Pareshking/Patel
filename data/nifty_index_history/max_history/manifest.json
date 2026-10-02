@@ -14,21 +14,25 @@
   },
   "target_interval_rows": 2403,
   "candidate_event_rows": 2611,
-  "official_2026_event_rows": 649,
   "dummy_event_rows": 10,
-  "note": "Maximum-history reconstruction. Official current snapshots and primary-source event overrides are kept distinct from third-party/inferred intervals. Third-party intervals are a starting evidence layer, not canonical where official evidence disagrees. DUMMY* records remain excluded from canonical membership. The builder now reconstructs backward to 2025-09-30, validates official 2025-08 review deltas, and records unresolved identity gaps rather than silently approving them. Block 02 remains unapproved because AKZOINDIA's official Smallcap 250 addition and SUNDARMHLD's Microcap 250 addition cannot yet be reconciled to source-backed later exit events; SUNDARMHLD's inferred 2026-03-30 exit is retained as explicitly unapproved evidence. HEG to HEGAM is represented as a continuing-security symbol transition effective 2026-09-07. See half_year_block_register.csv and block02_open_gaps.csv. Older half-year checkpoints remain pending.",
+  "note": "Maximum-history reconstruction. Official current snapshots and primary-source event overrides are kept distinct from third-party/inferred intervals. Third-party intervals are a starting evidence layer, not canonical where official evidence disagrees. DUMMY* records remain excluded from canonical membership. The reproducible builder reconstructs backward through the 2025-09-30 boundary and regenerates effective intervals, both saved checkpoints and the event application audit. Block 02 is not approved: AKZOINDIA's official Smallcap 250 addition remains absent from the reverse-reconstructed identity set, and SUNDARMHLD's Microcap 250 exit is inferred from upstream data rather than supported by an official removal event. See block02_open_gaps.csv. Block 01 replay and official review deltas are validated; older half-year checkpoints remain pending.",
   "effective_interval_file": "effective_intervals_2026-10-02.csv",
-  "effective_interval_rows": 2521,
+  "effective_interval_rows": 2520,
   "half_year_block_register": "half_year_block_register.csv",
   "status": "CURRENT_ANCHOR_EXACT_MATCH; B01_REPLAY_VALIDATED; B02_BLOCKED_OPEN_IDENTITY_GAPS",
   "event_application_audit": "event_application_audit.csv",
   "event_application_results": {
-    "INCLUDED_IN_BOUNDARY_STATE": 236,
-    "NOOP_DUMMY_EXCLUDED": 10,
-    "APPLIED_REMOVE": 120,
-    "APPLIED_ADD": 120
+    "INCLUDED_IN_BOUNDARY_STATE": 162,
+    "APPLIED_REMOVE": 238,
+    "APPLIED_ADD": 239,
+    "NOOP_DUMMY_EXCLUDED": 10
   },
   "block01_open_gaps": "block01_open_gaps.csv",
   "effective_history_builder": "scripts/build_effective_nifty_history.py",
-  "block02_open_gaps": "block02_open_gaps.csv"
+  "block02_open_gaps": "block02_open_gaps.csv",
+  "official_event_rows": 649,
+  "official_2025_review_event_rows": 162,
+  "official_2026_march_review_event_rows": 235,
+  "official_2026_tail_and_interim_event_rows": 252,
+  "candidate_checkpoint_2025": "candidate_checkpoint_2025-09-30.csv"
 }

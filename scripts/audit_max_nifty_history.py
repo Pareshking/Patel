@@ -98,7 +98,7 @@ def main() -> None:
     assert observed_starts == EXPECTED_STARTS, f"unexpected maximum-history starts: {observed_starts}"
 
     events = read("official_2026_interim_events.csv")
-    assert len(events) == 647, f"expected 647 official override/event rows, got {len(events)}"
+    assert len(events) == 649, f"expected 649 official override/event rows, got {len(events)}"
     for row in events:
         assert row["index"] in TARGETS, f"unknown index in official events: {row['index']}"
         parse_day(row["event_announcement_date"])
@@ -161,6 +161,15 @@ def main() -> None:
     candidate_2025_set = {(row["index"], row["symbol"].strip().upper()) for row in candidate_2025}
     assert candidate_2025_set == members_on(effective, "2025-09-30"), "saved 2025-09-30 checkpoint differs from effective history"
     assert len(candidate_2025_set) == sum(TARGETS.values()) == 750
+    gaps_2025 = read("block02_open_gaps.csv")
+    open_gap_keys = {(row["index"], row["symbol"].strip().upper()) for row in gaps_2025
+                     if row["status"].startswith("OPEN_")}
+    assert open_gap_keys == {("NIFTYSMALLCAP250", "AKZOINDIA"), ("NIFTYMICROCAP250", "SUNDARMHLD")}, (
+        f"Block 02 open-gap register mismatch: {open_gap_keys}"
+    )
+    assert all(row["status"] == "BLOCKED_OPEN_IDENTITY_GAPS" for row in candidate_2025), (
+        "checkpoint must remain blocked while unresolved identity gaps exist"
+    )
     review_2025 = [row for row in events if row["event_announcement_date"] == "2025-08-22" and row["effective_date"] == "2025-09-30"]
     review_2025_counts = Counter((row["index"], row["action"]) for row in review_2025)
     expected_2025_counts = Counter({
@@ -174,9 +183,9 @@ def main() -> None:
     for event in review_2025:
         key = (event["index"], event["symbol"].strip().upper())
         if event["action"] == "ADD":
-            assert key in candidate_2025_set, f"official September 2025 addition missing: {key}"
+            assert key in candidate_2025_set or key in open_gap_keys, f"official September 2025 addition missing without documented gap: {key}"
         else:
-            assert key not in candidate_2025_set, f"official September 2025 removal still active: {key}"
+            assert key not in candidate_2025_set or key in open_gap_keys, f"official September 2025 removal still active without documented gap: {key}"
 
     candidate_checkpoint = read("candidate_checkpoint_2026-03-30.csv")
     candidate_set = {(row["index"], row["symbol"].strip().upper()) for row in candidate_checkpoint}
@@ -207,7 +216,7 @@ def main() -> None:
     assert len(vedanta_adds) == 4, f"missing official Vedanta symbol transitions: {vedanta_adds}"
 
     application_audit = read("event_application_audit.csv")
-    assert len(application_audit) == len(events) == 647
+    assert len(application_audit) == len(events) == 649
     application_counts = Counter(row["application_result"] for row in application_audit)
     expected_application_counts = Counter({
         "APPLIED_ADD": 238,
@@ -222,7 +231,7 @@ def main() -> None:
     assert all(row["source_url"].startswith("https://") for row in application_audit)
     assert all(row["application_result"] for row in application_audit)
 
-    print("AUDIT PASS: current anchor identity, Blocks 01-02 boundary cardinality and official review deltas, event application audit, provenance, and DUMMY* exclusion; older half-year identities remain pending")
+    print("AUDIT PASS: current anchor identity, Blocks 01-02 cardinality, official review deltas and explicit Block 02 gap register; Block 02 remains unapproved pending source-backed identity reconciliation")
 
 if __name__ == "__main__":
     main()

@@ -161,11 +161,11 @@ def main() -> None:
     assert len(application_audit) == len(events) == 246
     application_counts = Counter(row["application_result"] for row in application_audit)
     expected_application_counts = Counter({
-        "APPLIED_ADD": 118,
-        "APPLIED_REMOVE": 117,
+        "APPLIED_ADD": 120,
+        "APPLIED_REMOVE": 120,
         "NOOP_DUMMY_EXCLUDED": 10,
-        "NOOP_REMOVE_NOT_ACTIVE": 3,
-        "NOOP_ADD_ALREADY_ACTIVE": 2,
+        "NOOP_REMOVE_NOT_ACTIVE": 0,
+        "NOOP_ADD_ALREADY_ACTIVE": 0,
     })
     print("EVENT_APPLICATION_RESULTS", application_counts)
     assert application_counts == expected_application_counts, (

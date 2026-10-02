@@ -164,6 +164,15 @@ def main() -> None:
     assert small_akzo["valid_to"] == "2026-04-15" and small_jsw["valid_to"] == "2026-09-30"
     assert micro_sund["valid_to"] == "2025-10-16" and micro_tsf["valid_to"] == "2026-09-30"
 
+    assert not any(row["index"] == "NIFTYSMALLCAP250" and row["symbol"] == "JSWDULUX"
+                   and row["valid_from"] < "2026-04-15" for row in effective), (
+        "JSWDULUX must not be backfilled before the official 2026-04-15 symbol transition"
+    )
+    assert not any(row["index"] == "NIFTYMICROCAP250" and row["symbol"] == "TSFINV"
+                   and row["valid_from"] < "2025-10-16" for row in effective), (
+        "TSFINV must not be backfilled before the official 2025-10-16 symbol transition"
+    )
+
     def members_on(rows: list[dict[str, str]], checkpoint: str) -> set[tuple[str, str]]:
         return {
             (row["index"], row["symbol"].strip().upper())

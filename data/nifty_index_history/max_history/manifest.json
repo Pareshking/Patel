@@ -14,7 +14,7 @@
   },
   "target_interval_rows": 2403,
   "candidate_event_rows": 2611,
-  "official_2026_event_rows": 245,
+  "official_2026_event_rows": 246,
   "dummy_event_rows": 10,
   "note": "This is a maximum-history reconstruction layer. Official current snapshots and official 2026 overrides are retained separately from third-party/inferred historical intervals."
 }

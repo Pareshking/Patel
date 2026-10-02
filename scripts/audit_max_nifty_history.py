@@ -112,7 +112,50 @@ def main() -> None:
     assert len(dummies) == 10, f"expected to retain 10 DUMMY* event records, got {len(dummies)}"
     assert all(row["canonical_effect"] == "DUMMY" for row in dummies)
     print("OFFICIAL_EVENTS", Counter((row["index"], row["effective_date"], row["action"]) for row in events))
-    print("AUDIT PASS: anchors, PIT interval integrity, history starts, provenance, and DUMMY* exclusion")
-    
+
+    # The raw third-party intervals are evidence, not the final canonical history.
+    # Apply official 2026 changes in the saved effective artifact and prove it ends
+    # at the exact official anchor, not merely at the right row counts.
+    effective = read("effective_intervals_2026-10-02.csv")
+    effective_counts = Counter(row["index"] for row in effective)
+    print("EFFECTIVE_INTERVALS", effective_counts)
+    assert len(effective) == 2517, f"unexpected effective interval rows: {len(effective)}"
+    assert not any(row["symbol"].strip().upper().startswith("DUMMY") for row in effective)
+    effective_grouped: dict[tuple[str, str], list[tuple[date, date | None]]] = defaultdict(list)
+    for row in effective:
+        index = row["index"]
+        symbol = row["symbol"].strip().upper()
+        start = parse_day(row["valid_from"])
+        end = parse_day(row["valid_to"], allow_blank=True)
+        assert index in TARGETS, f"unknown effective index: {index}"
+        assert start is not None and (end is None or end >= start), f"invalid effective interval: {row}"
+        effective_grouped[(index, symbol)].append((start, end))
+    for key, ranges in effective_grouped.items():
+        ranges.sort(key=lambda item: item[0])
+        for previous, current in zip(ranges, ranges[1:]):
+            assert previous[1] is not None and previous[1] < current[0], (
+                f"overlapping effective intervals for {key}: {previous} then {current}"
+            )
+
+    def members_on(rows: list[dict[str, str]], checkpoint: str) -> set[tuple[str, str]]:
+        return {
+            (row["index"], row["symbol"].strip().upper())
+            for row in rows
+            if row["valid_from"] <= checkpoint and (not row["valid_to"] or row["valid_to"] > checkpoint)
+        }
+
+    anchor_set = set(anchor_keys)
+    effective_anchor_set = members_on(effective, "2026-10-02")
+    assert effective_anchor_set == anchor_set, (
+        f"effective history does not exactly match official anchor; "
+        f"missing={sorted(anchor_set - effective_anchor_set)[:20]}, "
+        f"extra={sorted(effective_anchor_set - anchor_set)[:20]}"
+    )
+    for checkpoint in ("2024-09-30", "2024-10-01", "2025-03-28", "2025-09-30", "2026-03-30", "2026-09-30", "2026-10-02"):
+        counts = Counter(index for index, _ in members_on(effective, checkpoint))
+        print("CHECKPOINT_COUNTS", checkpoint, {index: counts[index] for index in TARGETS})
+
+    print("AUDIT PASS: source intervals, effective interval integrity, current anchor identity, provenance, and DUMMY* exclusion")
+
 if __name__ == "__main__":
     main()

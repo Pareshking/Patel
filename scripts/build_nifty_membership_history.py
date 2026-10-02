@@ -124,7 +124,14 @@ def main():
     events, intervals = build('2024-01-01', source_rows, anchors)
     write_csv(DATA / 'nifty_membership_events_2024_2026.csv', ['index','effective_date','action','symbol','source_tier','source_url','source_source_type','notes'], events)
     write_csv(DATA / 'nifty_membership_pit_2024_2026.csv', ['index','symbol','valid_from','valid_to','start_provenance','start_source_url','start_source_type','end_provenance','end_source_url','notes'], intervals)
+    starts = {'Nifty 50':'2014-01-01','Nifty Next 50':'2014-01-01','Nifty Midcap 150':'2016-04-01','Nifty Smallcap 250':'2016-04-01','Nifty Microcap 250':'2019-04-01'}
+    extended = []
+    for idx, start in starts.items():
+        _, idx_intervals = build(start, source_rows, anchors)
+        extended.extend(row for row in idx_intervals if row[0] == idx)
+    write_csv(DATA / 'nifty_membership_pit_extended.csv', ['index','symbol','valid_from','valid_to','start_provenance','start_source_url','start_source_type','end_provenance','end_source_url','notes'], extended)
     print('wrote primary history:', len(events), 'events and', len(intervals), 'intervals')
+    print('wrote extended history:', len(extended), 'intervals')
 
 if __name__ == '__main__':
     main()

@@ -17,6 +17,7 @@ EVENT_AUDIT = "event_application_audit.csv"
 CHECKPOINT_2025 = "candidate_checkpoint_2025-09-30.csv"
 CHECKPOINT_2026 = "candidate_checkpoint_2026-03-30.csv"
 BLOCK_GAPS = "block02_open_gaps.csv"
+NEXT_SOURCE_URL = "https://www.niftyindices.com/Press_Release/ind_prs15092026.pdf"
 
 
 def read_csv(name: str) -> list[dict[str, str]]:
@@ -99,17 +100,17 @@ def main() -> None:
             gap_rows.append({
                 "block_id": "B02", "checkpoint": CUTOFF, "index": index, "symbol": symbol,
                 "observed_reverse_effect": reason,
-                "suspected_gap": "Official September 2025 ADD exists, but no official later REMOVE was found; upstream inferred-exclude used only to preserve current anchor",
+                "suspected_gap": "Official September 2025 ADD exists, but no source-backed later REMOVE was found. Reconcile the additional official 2026-09-15 replacement notice before accepting the upstream inferred-exclude.",
                 "effective_date_of_add": CUTOFF, "inferred_remove_date": "2026-03-30",
-                "remove_source_url": "", "status": "OPEN_INFERRED_EXIT_NOT_OFFICIALLY_VERIFIED",
+                "remove_source_url": "", "next_source_to_review_url": NEXT_SOURCE_URL, "status": "OPEN_INFERRED_EXIT_NOT_OFFICIALLY_VERIFIED",
             })
         else:
             gap_rows.append({
                 "block_id": "B02", "checkpoint": CUTOFF, "index": index, "symbol": symbol,
                 "observed_reverse_effect": reason,
-                "suspected_gap": "Official September 2025 ADD conflicts with reverse-reconstructed identity set; no source-backed later exit/compensating membership event found",
+                "suspected_gap": "Official September 2025 ADD conflicts with reverse-reconstructed identity set. Reconcile the additional official 2026-09-15 replacement notice and find the source-backed exit/compensating membership event.",
                 "effective_date_of_add": CUTOFF, "inferred_remove_date": "",
-                "remove_source_url": "", "status": "OPEN_IDENTITY_MISMATCH",
+                "remove_source_url": "", "next_source_to_review_url": NEXT_SOURCE_URL, "status": "OPEN_IDENTITY_MISMATCH",
             })
     boundary_counts = {i: len(state[i]) for i in TARGETS}
     assert boundary_counts == TARGETS, f"boundary cardinality mismatch after evidence-backed gap handling: {boundary_counts}"
@@ -123,7 +124,7 @@ def main() -> None:
     write_csv(CHECKPOINT_2025, checkpoint_rows, list(checkpoint_rows[0]))
     write_csv(BLOCK_GAPS, gap_rows, list(gap_rows[0]) if gap_rows else
               ["block_id", "checkpoint", "index", "symbol", "observed_reverse_effect", "suspected_gap",
-               "effective_date_of_add", "inferred_remove_date", "remove_source_url", "status"])
+               "effective_date_of_add", "inferred_remove_date", "remove_source_url", "next_source_to_review_url", "status"])
 
     # Keep the upstream history only before the boundary. Force the boundary
     # active set to the reverse replay, then apply official events forward.

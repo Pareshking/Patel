@@ -157,8 +157,21 @@ def main() -> None:
         if checkpoint == "2026-03-30":
             assert counts == Counter(TARGETS), f"Block 01 boundary cardinality mismatch: {counts}"
 
+    candidate_checkpoint = read("candidate_checkpoint_2026-03-30.csv")
+    candidate_set = {(row["index"], row["symbol"].strip().upper()) for row in candidate_checkpoint}
+    boundary_set = members_on(effective, "2026-03-30")
+    assert candidate_set == boundary_set, "saved Block 01 candidate checkpoint differs from effective intervals"
+    assert len(candidate_set) == sum(TARGETS.values()) == 750
+    # Official listing circulars document the real-symbol transition from the temporary
+    # Vedanta dummy placeholders; retain these exact event rows as a regression gate.
+    vedanta_adds = {(row["symbol"], row["effective_date"], row["source_url"]) for row in events
+                    if row["index"] == "NIFTYNEXT50" and row["action"] == "ADD"
+                    and row["effective_date"] == "2026-06-15"
+                    and row["symbol"] in {"VEDPOWER", "VISL", "VAML", "VOGL"}}
+    assert len(vedanta_adds) == 4, f"missing official Vedanta symbol transitions: {vedanta_adds}"
+
     application_audit = read("event_application_audit.csv")
-    assert len(application_audit) == len(events) == 246
+    assert len(application_audit) == len(events) == 250
     application_counts = Counter(row["application_result"] for row in application_audit)
     expected_application_counts = Counter({
         "APPLIED_ADD": 120,
@@ -174,7 +187,7 @@ def main() -> None:
     assert all(row["source_url"].startswith("https://") for row in application_audit)
     assert all(row["application_result"] for row in application_audit)
 
-    print("AUDIT PASS: source intervals, effective interval integrity, exact current anchor identity, event application audit, provenance, and DUMMY* exclusion")
+    print("AUDIT PASS: current anchor identity, Block 01 boundary cardinality and replay, event application audit, provenance, and DUMMY* exclusion; older half-year identities remain pending")
 
 if __name__ == "__main__":
     main()

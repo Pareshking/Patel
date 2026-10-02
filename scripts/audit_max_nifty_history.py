@@ -17,7 +17,7 @@ EXPECTED_INTERVALS = {
     "NIFTY50": 83,
     "NIFTYNEXT50": 178,
     "NIFTYMIDCAP150": 442,
-    "NIFTYSMALLCAP250": 886,
+    "NIFTYSMALLCAP250": 887,
     "NIFTYMICROCAP250": 814,
 }
 EXPECTED_STARTS = {
@@ -54,7 +54,7 @@ def main() -> None:
     interval_counts = Counter(row["index"] for row in intervals)
     print("INTERVALS", interval_counts)
     assert interval_counts == Counter(EXPECTED_INTERVALS), f"unexpected PIT interval counts: {interval_counts}"
-    assert len(intervals) == 2403
+    assert len(intervals) == 2404
     assert not any(row["symbol"].strip().upper().startswith("DUMMY") for row in intervals), (
         "DUMMY* placeholders must not appear in canonical PIT intervals"
     )
@@ -83,6 +83,15 @@ def main() -> None:
             assert previous_end is not None and previous_end < current[0], (
                 f"overlapping or open-ended intervals for {index}/{symbol}: {previous} then {current}"
             )
+
+    # The official 2025-08-22 review makes MSUMI, not MOTHERSON, the Smallcap 250 member from 2025-09-30.
+    smallcap_intervals = [row for row in intervals if row["index"] == "NIFTYSMALLCAP250"]
+    assert any(row["symbol"] == "MSUMI" and row["valid_from"] == "2025-09-30" for row in smallcap_intervals)
+    assert not any(row["symbol"] == "MOTHERSON" and row["valid_from"] == "2025-09-30" for row in smallcap_intervals)
+    # HEG's continuing security changes symbol to HEGAM; DUMMYHEG is a separate demerger placeholder.
+    heg = next(row for row in smallcap_intervals if row["symbol"] == "HEG" and row["valid_from"] == "2020-06-26")
+    assert heg["valid_to"] == "2026-09-04"
+    assert any(row["symbol"] == "HEGAM" and row["valid_from"] == "2026-09-07" and not row["valid_to"] for row in smallcap_intervals)
 
     observed_starts = {index: day.isoformat() for index, day in earliest.items()}
     print("EARLIEST_INTERVAL_STARTS", observed_starts)

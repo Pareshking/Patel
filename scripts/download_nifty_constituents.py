@@ -116,10 +116,32 @@ def fetch_csv(name: str, url: str) -> tuple[bytes, list[str], list[list[str]], d
 
 downloaded: dict[str, tuple[bytes, list[str], list[list[str]], dict]] = {}
 
+CANONICAL_DIR = OUT / "canonical"
+CANONICAL_DIR.mkdir(parents=True, exist_ok=True)
+
 for name, url in SOURCES.items():
     raw, symbols, data_rows, meta = fetch_csv(name, url)
     downloaded[name] = (raw, symbols, data_rows, meta)
     (OUT / f"{name}.csv").write_bytes(raw)
+
+    # Canonical snapshot excludes DUMMY* corporate-action placeholders but
+    # preserves the original row order and all other fields.
+    symbol_col = next(
+        i for i, h in enumerate(meta["columns"])
+        if h.strip().lower() == "symbol"
+    )
+    canonical_rows = [
+        row for row in data_rows
+        if symbol_col < len(row)
+        and row[symbol_col].strip()
+        and not row[symbol_col].strip().upper().startswith("DUMMY")
+    ]
+    canonical_path = CANONICAL_DIR / f"{name}.csv"
+    canonical_path.write_text(
+        ",".join(meta["columns"]) + "\n"
+        + "\n".join(",".join(row) for row in canonical_rows) + "\n",
+        encoding="utf-8",
+    )
 
     print(
         f"{name}: http={meta['http_status']} final_url={meta['final_url']} "

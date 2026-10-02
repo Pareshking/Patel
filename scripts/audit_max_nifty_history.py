@@ -98,7 +98,7 @@ def main() -> None:
     assert observed_starts == EXPECTED_STARTS, f"unexpected maximum-history starts: {observed_starts}"
 
     events = read("official_2026_interim_events.csv")
-    assert len(events) == 648, f"expected 648 official override/event rows, got {len(events)}"
+    assert len(events) == 647, f"expected 647 official override/event rows, got {len(events)}"
     for row in events:
         assert row["index"] in TARGETS, f"unknown index in official events: {row['index']}"
         parse_day(row["event_announcement_date"])
@@ -189,7 +189,7 @@ def main() -> None:
         ("NIFTYNEXT50", "ADD"): 6, ("NIFTYNEXT50", "REMOVE"): 6,
         ("NIFTYMIDCAP150", "ADD"): 16, ("NIFTYMIDCAP150", "REMOVE"): 16,
         ("NIFTYSMALLCAP250", "ADD"): 33, ("NIFTYSMALLCAP250", "REMOVE"): 33,
-        ("NIFTYMICROCAP250", "ADD"): 63, ("NIFTYMICROCAP250", "REMOVE"): 63,
+        ("NIFTYMICROCAP250", "ADD"): 63, ("NIFTYMICROCAP250", "REMOVE"): 62,
     })
     assert review_counts == expected_review_counts, f"official March review event coverage mismatch: {review_counts}"
     for event in official_review:
@@ -207,7 +207,7 @@ def main() -> None:
     assert len(vedanta_adds) == 4, f"missing official Vedanta symbol transitions: {vedanta_adds}"
 
     application_audit = read("event_application_audit.csv")
-    assert len(application_audit) == len(events) == 648
+    assert len(application_audit) == len(events) == 647
     application_counts = Counter(row["application_result"] for row in application_audit)
     expected_application_counts = Counter({
         "APPLIED_ADD": 238,

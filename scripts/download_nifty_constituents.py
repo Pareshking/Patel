@@ -71,24 +71,43 @@ for name, url in SOURCES.items():
 
     header = rows[0]
     data_rows = [r for r in rows[1:] if any(cell.strip() for cell in r)]
-    symbols = []
     symbol_col = next((i for i, h in enumerate(header) if h.strip().lower() == "symbol"), None)
     if symbol_col is None:
         raise RuntimeError(f"{name}: no SYMBOL column; header={header!r}")
 
-    for row in data_rows:
-        if symbol_col < len(row):
-            symbols.append(row[symbol_col].strip())
+    symbols = [
+        r[symbol_col].strip()
+        for r in data_rows
+        if symbol_col < len(r) and r[symbol_col].strip()
+    ]
+
+    # Always persist the exact server response before validation so a failed
+    # fetch can be inspected without issuing another request.
+    path = OUT / f"{name}.csv"
+    path.write_bytes(raw)
+
+    print(
+        f"{name}: http={response.status_code} content_type="
+        f"{response.headers.get('content-type')} bytes={len(raw)} "
+        f"parsed_rows={len(symbols)} expected={EXPECTED_ROWS[name]}"
+    )
+    print(f"{name}: header={header!r}")
+    print(f"{name}: first3={data_rows[:3]!r}")
+    print(f"{name}: last5={data_rows[-5:]!r}")
 
     if len(symbols) != EXPECTED_ROWS[name]:
+        print(f"{name}: duplicate_count={len(symbols) - len(set(symbols))}")
+        if len(symbols) > EXPECTED_ROWS[name]:
+            print(
+                f"{name}: extra candidate rows="
+                f"{data_rows[EXPECTED_ROWS[name]:]!r}"
+            )
         raise RuntimeError(
             f"{name}: expected {EXPECTED_ROWS[name]} constituents, got {len(symbols)}"
         )
+
     if len(set(symbols)) != len(symbols):
         raise RuntimeError(f"{name}: duplicate symbols detected")
-
-    path = OUT / f"{name}.csv"
-    path.write_bytes(raw)
 
     manifest["sources"][name] = {
         "url": url,

@@ -230,6 +230,7 @@ def main() -> None:
     )
     assert all(row["source_url"].startswith("https://") for row in application_audit)
     assert all(row["application_result"] for row in application_audit)
+    print("BLOCK02_OPEN_GAPS", gaps_2025)
 
     print("AUDIT PASS: current anchor identity, Blocks 01-02 cardinality, official review deltas and explicit Block 02 gap register; Block 02 remains unapproved pending source-backed identity reconciliation")
 

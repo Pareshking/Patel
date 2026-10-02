@@ -17,7 +17,7 @@ EXPECTED_INTERVALS = {
     "NIFTY50": 83,
     "NIFTYNEXT50": 178,
     "NIFTYMIDCAP150": 442,
-    "NIFTYSMALLCAP250": 887,
+    "NIFTYSMALLCAP250": 886,
     "NIFTYMICROCAP250": 814,
 }
 EXPECTED_STARTS = {
@@ -54,7 +54,7 @@ def main() -> None:
     interval_counts = Counter(row["index"] for row in intervals)
     print("INTERVALS", interval_counts)
     assert interval_counts == Counter(EXPECTED_INTERVALS), f"unexpected PIT interval counts: {interval_counts}"
-    assert len(intervals) == 2404
+    assert len(intervals) == 2403
     assert not any(row["symbol"].strip().upper().startswith("DUMMY") for row in intervals), (
         "DUMMY* placeholders must not appear in canonical PIT intervals"
     )

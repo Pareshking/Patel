@@ -35,9 +35,10 @@ BASE_URL = "https://www.stockscans.in/api/charts/ohlcv"
 CSV_COLUMNS = ("date", "open", "high", "low", "close", "volume")
 
 
-def fetch(symbol: str, timeout: int) -> dict:
+def fetch(symbol: str, timeout: int, before: str | None = None) -> dict:
     instrument = urllib.parse.quote(f"NSE:{symbol}", safe="")
-    url = f"{BASE_URL}/{instrument}?tf=1D"
+    query = urllib.parse.urlencode({"tf": "1D", **({"before": before} if before else {})})
+    url = f"{BASE_URL}/{instrument}?{query}"
     request = urllib.request.Request(url, headers={"User-Agent": "ohlcv-quality-check/1.0"})
     with urllib.request.urlopen(request, timeout=timeout) as response:
         if response.status != 200:
@@ -46,6 +47,41 @@ def fetch(symbol: str, timeout: int) -> dict:
         if response.headers.get("Content-Encoding", "").lower() == "gzip":
             body = gzip.decompress(body)
         return json.loads(body.decode("utf-8"))
+
+
+def years_ago(years: int) -> date:
+    today = date.today()
+    try:
+        return today.replace(year=today.year - years)
+    except ValueError:  # February 29 on a non-leap target year.
+        return today.replace(year=today.year - years, day=28)
+
+
+def fetch_history(symbol: str, timeout: int, start_date: date) -> tuple[dict, int, bool, bool]:
+    before = None
+    pages: list[dict] = []
+
+    while True:
+        page = fetch(symbol, timeout, before)
+        prices = page.get("prices")
+        if not isinstance(prices, list) or not prices:
+            raise RuntimeError("API returned an empty prices page")
+        pages.append(page)
+
+        oldest = prices[0][0]
+        try:
+            oldest_date = datetime.strptime(oldest, "%Y-%m-%d").date()
+        except (TypeError, ValueError) as error:
+            raise RuntimeError(f"API returned an invalid oldest date: {oldest!r}") from error
+        if oldest_date <= start_date or not page.get("hasMore"):
+            break
+        if oldest == before:
+            raise RuntimeError("pagination did not advance")
+        before = oldest
+
+    combined = {**pages[0], "prices": sorted((row for page in pages for row in page["prices"]), key=lambda row: row[0])}
+    reached_requested_start = oldest_date <= start_date
+    return combined, len(pages), bool(pages[-1].get("hasMore")), reached_requested_start
 
 
 def weekday_gaps(dates: list[date]) -> list[str]:
@@ -115,9 +151,6 @@ def validate(payload: dict, symbol: str) -> tuple[list[list[object]], dict]:
     gaps = weekday_gaps(sorted(set(parsed_dates)))
     if gaps:
         warnings.append(f"{len(gaps)} weekday gap(s); these can be NSE holidays or missing sessions")
-    if payload.get("hasMore") is True:
-        warnings.append("API returned hasMore=true: this download may be a capped window, not complete history")
-
     report = {
         "status": "passed" if not problems else "failed",
         "company_name": payload.get("name"),
@@ -146,18 +179,39 @@ def main() -> int:
     parser.add_argument("--symbols", nargs="+", default=DEFAULT_SYMBOLS, help="NSE symbols without the NSE: prefix")
     parser.add_argument("--out-dir", default="reports", help="Directory for CSV downloads and quality_report.json")
     parser.add_argument("--timeout", type=int, default=30, help="HTTP timeout in seconds")
+    parser.add_argument("--years", type=int, default=10, help="Trailing calendar years of daily history to download")
     args = parser.parse_args()
+    if args.years < 1:
+        parser.error("--years must be at least 1")
 
     out_dir = Path(args.out_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
-    report = {"source": BASE_URL, "timeframe": "1D", "symbols": {}}
+    requested_start = years_ago(args.years)
+    report = {
+        "source": BASE_URL,
+        "timeframe": "1D",
+        "requested_years": args.years,
+        "requested_start_date": requested_start.isoformat(),
+        "symbols": {},
+    }
     failures = 0
 
     for input_symbol in args.symbols:
         symbol = input_symbol.upper().removeprefix("NSE:")
         try:
-            payload = fetch(symbol, args.timeout)
+            payload, page_count, more_history_available, reached_requested_start = fetch_history(symbol, args.timeout, requested_start)
+            payload["prices"] = [row for row in payload["prices"] if row[0] >= requested_start.isoformat()]
             rows, result = validate(payload, symbol)
+            result["page_count"] = page_count
+            result["requested_start_date"] = requested_start.isoformat()
+            result["coverage_satisfies_request"] = bool(rows) and reached_requested_start
+            result["more_history_available"] = more_history_available
+            if result["coverage_satisfies_request"] and more_history_available:
+                result["warnings"].append("Older history is also available; the CSV is intentionally limited to the requested range")
+            if result["coverage_satisfies_request"] and rows[0][0] > requested_start.isoformat():
+                result["warnings"].append("The requested start date was not a trading session; the CSV begins on the next available date")
+            elif not result["coverage_satisfies_request"]:
+                result["warnings"].append("The available history does not reach the requested start date")
             if rows:
                 write_csv(out_dir / f"NSE_{symbol}_1D.csv", rows)
             report["symbols"][symbol] = result
@@ -168,11 +222,11 @@ def main() -> int:
             report["symbols"][symbol] = {"status": "failed", "problems": [str(error)], "warnings": []}
             print(f"{symbol}: failed | {error}", file=sys.stderr)
 
-    (out_dir / "quality_report.json").write_text(json.dumps(report, indent=2) + "
-", encoding="utf-8")
+    (out_dir / "quality_report.json").write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
     print(f"Report: {out_dir / 'quality_report.json'}")
     return 1 if failures else 0
 
 
 if __name__ == "__main__":
     raise SystemExit(main())
+

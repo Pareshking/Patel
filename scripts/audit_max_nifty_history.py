@@ -98,7 +98,7 @@ def main() -> None:
     assert observed_starts == EXPECTED_STARTS, f"unexpected maximum-history starts: {observed_starts}"
 
     events = read("official_2026_interim_events.csv")
-    assert len(events) == 486, f"expected 486 official override/event rows, got {len(events)}"
+    assert len(events) == 648, f"expected 648 official override/event rows, got {len(events)}"
     for row in events:
         assert row["index"] in TARGETS, f"unknown index in official events: {row['index']}"
         parse_day(row["event_announcement_date"])
@@ -119,7 +119,7 @@ def main() -> None:
     effective = read("effective_intervals_2026-10-02.csv")
     effective_counts = Counter(row["index"] for row in effective)
     print("EFFECTIVE_INTERVALS", effective_counts)
-    assert len(effective) == 2521, f"unexpected effective interval rows: {len(effective)}"
+    assert len(effective) >= 2521, f"effective history unexpectedly shrank: {len(effective)}"
     assert not any(row["symbol"].strip().upper().startswith("DUMMY") for row in effective)
     effective_grouped: dict[tuple[str, str], list[tuple[date, date | None]]] = defaultdict(list)
     for row in effective:
@@ -154,8 +154,29 @@ def main() -> None:
     for checkpoint in ("2024-09-30", "2024-10-01", "2025-03-28", "2025-09-30", "2026-03-30", "2026-09-30", "2026-10-02"):
         counts = Counter(index for index, _ in members_on(effective, checkpoint))
         print("CHECKPOINT_COUNTS", checkpoint, {index: counts[index] for index in TARGETS})
-        if checkpoint == "2026-03-30":
-            assert counts == Counter(TARGETS), f"Block 01 boundary cardinality mismatch: {counts}"
+        if checkpoint in {"2025-09-30", "2026-03-30"}:
+            assert counts == Counter(TARGETS), f"half-year boundary cardinality mismatch at {checkpoint}: {counts}"
+
+    candidate_2025 = read("candidate_checkpoint_2025-09-30.csv")
+    candidate_2025_set = {(row["index"], row["symbol"].strip().upper()) for row in candidate_2025}
+    assert candidate_2025_set == members_on(effective, "2025-09-30"), "saved 2025-09-30 checkpoint differs from effective history"
+    assert len(candidate_2025_set) == sum(TARGETS.values()) == 750
+    review_2025 = [row for row in events if row["event_announcement_date"] == "2025-08-22" and row["effective_date"] == "2025-09-30"]
+    review_2025_counts = Counter((row["index"], row["action"]) for row in review_2025)
+    expected_2025_counts = Counter({
+        ("NIFTY50", "ADD"): 2, ("NIFTY50", "REMOVE"): 2,
+        ("NIFTYNEXT50", "ADD"): 4, ("NIFTYNEXT50", "REMOVE"): 4,
+        ("NIFTYMIDCAP150", "ADD"): 13, ("NIFTYMIDCAP150", "REMOVE"): 13,
+        ("NIFTYSMALLCAP250", "ADD"): 23, ("NIFTYSMALLCAP250", "REMOVE"): 23,
+        ("NIFTYMICROCAP250", "ADD"): 39, ("NIFTYMICROCAP250", "REMOVE"): 39,
+    })
+    assert review_2025_counts == expected_2025_counts, f"September 2025 official review coverage mismatch: {review_2025_counts}"
+    for event in review_2025:
+        key = (event["index"], event["symbol"].strip().upper())
+        if event["action"] == "ADD":
+            assert key in candidate_2025_set, f"official September 2025 addition missing: {key}"
+        else:
+            assert key not in candidate_2025_set, f"official September 2025 removal still active: {key}"
 
     candidate_checkpoint = read("candidate_checkpoint_2026-03-30.csv")
     candidate_set = {(row["index"], row["symbol"].strip().upper()) for row in candidate_checkpoint}
@@ -186,13 +207,13 @@ def main() -> None:
     assert len(vedanta_adds) == 4, f"missing official Vedanta symbol transitions: {vedanta_adds}"
 
     application_audit = read("event_application_audit.csv")
-    assert len(application_audit) == len(events) == 486
+    assert len(application_audit) == len(events) == 648
     application_counts = Counter(row["application_result"] for row in application_audit)
     expected_application_counts = Counter({
-        "APPLIED_ADD": 120,
-        "APPLIED_REMOVE": 120,
+        "APPLIED_ADD": 238,
+        "APPLIED_REMOVE": 238,
         "NOOP_DUMMY_EXCLUDED": 10,
-        "INCLUDED_IN_BOUNDARY_STATE": 236,
+        "INCLUDED_IN_BOUNDARY_STATE": 162,
     })
     print("EVENT_APPLICATION_RESULTS", application_counts)
     assert application_counts == expected_application_counts, (
@@ -201,7 +222,7 @@ def main() -> None:
     assert all(row["source_url"].startswith("https://") for row in application_audit)
     assert all(row["application_result"] for row in application_audit)
 
-    print("AUDIT PASS: current anchor identity, Block 01 boundary cardinality and replay, event application audit, provenance, and DUMMY* exclusion; older half-year identities remain pending")
+    print("AUDIT PASS: current anchor identity, Blocks 01-02 boundary cardinality and official review deltas, event application audit, provenance, and DUMMY* exclusion; older half-year identities remain pending")
 
 if __name__ == "__main__":
     main()

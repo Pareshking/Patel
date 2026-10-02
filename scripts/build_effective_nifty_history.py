@@ -128,7 +128,22 @@ def main() -> None:
 
     # Keep the upstream history only before the boundary. Force the boundary
     # active set to the reverse replay, then apply official events forward.
-    intervals = [dict(r) for r in raw if r["valid_from"] <= CUTOFF]
+    # Upstream snapshots sometimes backfill a company's current symbol into years before
+    # the NSE symbol-change date. Do not publish those retroactive aliases as historical securities.
+    transition_start = {
+        (e["index"], e["symbol"].strip().upper()): e["effective_date"]
+        for e in events
+        if e.get("canonical_effect") == "SYMBOL_TRANSITION" and e["action"] == "ADD"
+    }
+    intervals = [
+        dict(r) for r in raw
+        if r["valid_from"] <= CUTOFF
+        and not (
+            r.get("record_class") == "inferred_or_snapshot"
+            and (r["index"], r["symbol"].strip().upper()) in transition_start
+            and r["valid_from"] < transition_start[(r["index"], r["symbol"].strip().upper())]
+        )
+    ]
     for pos in range(len(intervals) - 1, -1, -1):
         row = intervals[pos]
         if not active(row, CUTOFF):

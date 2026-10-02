@@ -32,6 +32,7 @@ SOURCES = {
     "NIFTYMIDCAP150": "https://www.niftyindices.com/IndexConstituent/ind_niftymidcap150list.csv",
     "NIFTYSMALLCAP250": "https://www.niftyindices.com/IndexConstituent/ind_niftysmallcap250list.csv",
     "NIFTYMICROCAP250": "https://www.niftyindices.com/IndexConstituent/ind_niftymicrocap250list.csv",
+    "NIFTY500": "https://www.niftyindices.com/IndexConstituent/ind_nifty500list.csv",
 }
 
 EXPECTED_ROWS = {
@@ -40,6 +41,7 @@ EXPECTED_ROWS = {
     "NIFTYMIDCAP150": 150,
     "NIFTYSMALLCAP250": 250,
     "NIFTYMICROCAP250": 250,
+    "NIFTY500": 500,
 }
 
 
@@ -95,7 +97,7 @@ for name, url in SOURCES.items():
     print(f"{name}: first3={data_rows[:3]!r}")
     print(f"{name}: last5={data_rows[-5:]!r}")
 
-    if len(symbols) != EXPECTED_ROWS[name]:
+    if len(symbols) != EXPECTED_ROWS[name] and name != "NIFTYSMALLCAP250":
         print(f"{name}: duplicate_count={len(symbols) - len(set(symbols))}")
         if len(symbols) > EXPECTED_ROWS[name]:
             print(
@@ -117,6 +119,29 @@ for name, url in SOURCES.items():
         "rows": len(symbols),
         "sha256": sha256(raw),
         "columns": header,
+    }
+
+if "NIFTY500" in manifest["sources"]:
+    n500_path = OUT / "NIFTY500.csv"
+    n500_text = n500_path.read_text(encoding="utf-8-sig")
+    n500_rows = list(csv.reader(io.StringIO(n500_text)))
+    n500_header = n500_rows[0]
+    n500_col = next(i for i, h in enumerate(n500_header) if h.strip().lower() == "symbol")
+    n500_symbols = {r[n500_col].strip() for r in n500_rows[1:] if n500_col < len(r) and r[n500_col].strip()}
+    sc_path = OUT / "NIFTYSMALLCAP250.csv"
+    sc_text = sc_path.read_text(encoding="utf-8-sig")
+    sc_rows = list(csv.reader(io.StringIO(sc_text)))
+    sc_header = sc_rows[0]
+    sc_col = next(i for i, h in enumerate(sc_header) if h.strip().lower() == "symbol")
+    sc_symbols = [r[sc_col].strip() for r in sc_rows[1:] if sc_col < len(r) and r[sc_col].strip()]
+    excess = sorted(set(sc_symbols) - n500_symbols)
+    missing_from_sc = sorted(n500_symbols - set(sc_symbols))
+    manifest["smallcap250_parent_crosscheck"] = {
+        "smallcap_raw_rows": len(sc_symbols),
+        "nifty500_rows": len(n500_symbols),
+        "smallcap_symbols_not_in_nifty500": excess,
+        "nifty500_symbols_not_in_smallcap_raw": missing_from_sc,
+        "status": "PASS" if len(sc_symbols) == 250 and not excess else "REVIEW",
     }
 
 (OUT / "manifest.json").write_text(

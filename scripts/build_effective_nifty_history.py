@@ -6,7 +6,7 @@ from datetime import date
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1] / "data" / "nifty_index_history" / "max_history"
-CUTOFF = "2026-03-30"
+CUTOFF = "2025-09-30"
 ANCHOR_DATE = "2026-10-02"
 TARGETS = {"NIFTY50": 50, "NIFTYNEXT50": 50, "NIFTYMIDCAP150": 150, "NIFTYSMALLCAP250": 250, "NIFTYMICROCAP250": 250}
 RAW = "yurukatsu_target_intervals.csv"
@@ -14,6 +14,8 @@ EVENTS = "official_2026_interim_events.csv"
 ANCHOR = "official_anchor_2026-10-02.csv"
 OUTPUT = "effective_intervals_2026-10-02.csv"
 EVENT_AUDIT = "event_application_audit.csv"
+CHECKPOINT_2025 = "candidate_checkpoint_2025-09-30.csv"
+CHECKPOINT_2026 = "candidate_checkpoint_2026-03-30.csv"
 
 
 def read_csv(name: str) -> list[dict[str, str]]:
@@ -44,7 +46,7 @@ def main() -> None:
     assert Counter(row["index"] for row in anchor) == Counter(TARGETS)
     assert not any(dummy(row) for row in anchor)
 
-    # Reconstruct the first boundary backwards from the official current anchor.
+    # Reconstruct the next older half-year boundary backwards from the official current anchor.
     reverse_events = [e for e in events if e["effective_date"] > CUTOFF and not dummy(e)]
     reverse_events.sort(key=lambda e: (0 if e["action"] == "ADD" else 1, e["symbol"]))
     reverse_events.sort(key=lambda e: (
@@ -61,6 +63,35 @@ def main() -> None:
             members.add(symbol)
     boundary_counts = {i: len(state[i]) for i in TARGETS}
     assert boundary_counts == TARGETS, f"boundary cardinality mismatch: {boundary_counts}"
+
+    # Validate this boundary against the official September 2025 review deltas.
+    review_2025 = [e for e in events if e["event_announcement_date"] == "2025-08-22"
+                   and e["effective_date"] == CUTOFF and not dummy(e)]
+    expected_review_counts = {
+        ("NIFTY50", "ADD"): 2, ("NIFTY50", "REMOVE"): 2,
+        ("NIFTYNEXT50", "ADD"): 4, ("NIFTYNEXT50", "REMOVE"): 4,
+        ("NIFTYMIDCAP150", "ADD"): 13, ("NIFTYMIDCAP150", "REMOVE"): 13,
+        ("NIFTYSMALLCAP250", "ADD"): 23, ("NIFTYSMALLCAP250", "REMOVE"): 23,
+        ("NIFTYMICROCAP250", "ADD"): 39, ("NIFTYMICROCAP250", "REMOVE"): 39,
+    }
+    review_counts = Counter((e["index"], e["action"]) for e in review_2025)
+    assert review_counts == expected_review_counts, f"September 2025 official review coverage mismatch: {review_counts}"
+    for event in review_2025:
+        members = state[event["index"]]
+        symbol = event["symbol"].strip().upper()
+        if event["action"] == "ADD":
+            assert symbol in members, f"official September 2025 addition absent at boundary: {event}"
+        else:
+            assert symbol not in members, f"official September 2025 removal still active at boundary: {event}"
+
+    checkpoint_rows = [
+        {"index": index, "symbol": symbol, "as_of_date": CUTOFF,
+         "reconstruction_method": "reverse official event chain from official 2026-10-02 anchor",
+         "status": "RECONSTRUCTED_OFFICIAL_REVIEW_DELTA_VALIDATED",
+         "source_file": EVENTS}
+        for index, symbols in sorted(state.items()) for symbol in sorted(symbols)
+    ]
+    write_csv(CHECKPOINT_2025, checkpoint_rows, list(checkpoint_rows[0]))
 
     # Keep the upstream history only before the boundary. Force the boundary
     # active set to the reverse replay, then apply official events forward.
@@ -128,6 +159,15 @@ def main() -> None:
     intervals.sort(key=lambda r: (r["index"], r["symbol"], r["valid_from"]))
     write_csv(OUTPUT, intervals, list(raw[0]))
     write_csv(EVENT_AUDIT, audit_rows, list(audit_rows[0]))
+    checkpoint_2026 = [
+        {"index": index, "symbol": symbol, "as_of_date": "2026-03-30",
+         "reconstruction_method": "reverse official event chain from official 2026-10-02 anchor",
+         "status": "RECONSTRUCTED_OFFICIAL_REVIEW_DELTA_VALIDATED",
+         "source_file": EVENTS}
+        for index, symbol in sorted({(r["index"], r["symbol"].strip().upper()) for r in intervals
+                                     if active(r, "2026-03-30")})
+    ]
+    write_csv(CHECKPOINT_2026, checkpoint_2026, list(checkpoint_2026[0]))
 
     actual_anchor = {(r["index"], r["symbol"].strip().upper()) for r in intervals if active(r, ANCHOR_DATE)}
     expected_anchor = {(r["index"], r["symbol"].strip().upper()) for r in anchor}
@@ -143,7 +183,7 @@ def main() -> None:
     print("EFFECTIVE_INTERVAL_ROWS", len(intervals))
     print("BOUNDARY_COUNTS", boundary_counts)
     print("EVENT_APPLICATION_RESULTS", dict(Counter(r["application_result"] for r in audit_rows)))
-    print("BUILD PASS: Block 01 replayed backward from official anchor")
+    print("BUILD PASS: Block 02 boundary reconstructed backward from official anchor; Block 01 regenerated")
 
 
 if __name__ == "__main__":

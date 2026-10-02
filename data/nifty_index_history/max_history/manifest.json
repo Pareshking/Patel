@@ -16,9 +16,17 @@
   "candidate_event_rows": 2611,
   "official_2026_event_rows": 246,
   "dummy_event_rows": 10,
-  "note": "Maximum-history reconstruction. Official current snapshots and primary-source event overrides are kept distinct from third-party/inferred intervals. Smallcap identity corrections use official 2025 review evidence for MSUMI and official NSE corporate-action/symbol evidence for the HEG/HEGAM continuation; duplicate overlapping GSPL snapshot evidence removed. DUMMY* records remain excluded from canonical membership. The saved effective interval artifact applies the 246 official 2026 event rows to the third-party interval baseline, excludes DUMMY* placeholders, and exactly matches the 2026-10-02 official anchor. Historical half-year checkpoints remain pending until exact official membership identity is verified block by block; see half_year_block_register.csv.",
+  "note": "Maximum-history reconstruction. Official current snapshots and primary-source event overrides are kept distinct from third-party/inferred intervals. Smallcap identity corrections use official 2025 review evidence for MSUMI and official NSE corporate-action/symbol evidence for the HEG/HEGAM continuation; duplicate overlapping GSPL snapshot evidence removed. DUMMY* records remain excluded from canonical membership. The saved effective interval artifact applies the 246 official 2026 event rows to the third-party interval baseline, excludes DUMMY* placeholders, and exactly matches the 2026-10-02 official anchor. Historical half-year checkpoints remain pending until exact official membership identity is verified block by block; see half_year_block_register.csv. Event-by-event application outcomes and intentional no-ops are persisted in event_application_audit.csv and checked by scripts/audit_max_nifty_history.py.",
   "effective_interval_file": "effective_intervals_2026-10-02.csv",
   "effective_interval_rows": 2517,
   "half_year_block_register": "half_year_block_register.csv",
-  "status": "CURRENT_ANCHOR_RECONCILED; HISTORICAL_BLOCKS_PENDING"
+  "status": "CURRENT_ANCHOR_RECONCILED; HISTORICAL_BLOCKS_PENDING",
+  "event_application_audit": "event_application_audit.csv",
+  "event_application_results": {
+    "APPLIED_ADD": 114,
+    "APPLIED_REMOVE": 113,
+    "NOOP_DUMMY_EXCLUDED": 10,
+    "NOOP_REMOVE_NOT_ACTIVE": 7,
+    "NOOP_ADD_ALREADY_ACTIVE": 2
+  }
 }

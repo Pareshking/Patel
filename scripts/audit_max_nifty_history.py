@@ -1,24 +1,109 @@
 from __future__ import annotations
+
 import csv
-from collections import Counter
+from collections import Counter, defaultdict
+from datetime import date
 from pathlib import Path
 
-ROOT=Path(__file__).resolve().parents[1]/"data"/"nifty_index_history"/"max_history"
-TARGETS={"NIFTY50":50,"NIFTYNEXT50":50,"NIFTYMIDCAP150":150,"NIFTYSMALLCAP250":250,"NIFTYMICROCAP250":250}
+ROOT = Path(__file__).resolve().parents[1] / "data" / "nifty_index_history" / "max_history"
+TARGETS = {
+    "NIFTY50": 50,
+    "NIFTYNEXT50": 50,
+    "NIFTYMIDCAP150": 150,
+    "NIFTYSMALLCAP250": 250,
+    "NIFTYMICROCAP250": 250,
+}
+EXPECTED_INTERVALS = {
+    "NIFTY50": 83,
+    "NIFTYNEXT50": 178,
+    "NIFTYMIDCAP150": 442,
+    "NIFTYSMALLCAP250": 886,
+    "NIFTYMICROCAP250": 814,
+}
+EXPECTED_STARTS = {
+    "NIFTY50": "2014-01-01",
+    "NIFTYNEXT50": "2014-01-01",
+    "NIFTYMIDCAP150": "2016-04-01",
+    "NIFTYSMALLCAP250": "2016-04-01",
+    "NIFTYMICROCAP250": "2019-04-01",
+}
 
-def read(name):
-    with (ROOT/name).open(encoding="utf-8") as f: return list(csv.DictReader(f))
 
-def main():
-    anchor=read("official_anchor_2026-10-02.csv")
-    print("ANCHOR", Counter(r["index"] for r in anchor))
-    assert not any(r["symbol"].upper().startswith("DUMMY") for r in anchor)
-    for idx,want in TARGETS.items(): assert sum(r["index"]==idx for r in anchor)==want
-    intervals=read("yurukatsu_target_intervals.csv")
-    print("INTERVALS", Counter(r["index"] for r in intervals))
-    dummies=[r for r in read("official_2026_interim_events.csv") if r["symbol"].upper().startswith("DUMMY")]
-    print("DUMMY_EVENTS", Counter(r["index"] for r in dummies), "count", len(dummies))
-    events=read("official_2026_interim_events.csv")
-    print("OFFICIAL_EVENTS", Counter((r["index"],r["effective_date"],r["action"]) for r in events))
+def read(name: str) -> list[dict[str, str]]:
+    with (ROOT / name).open(encoding="utf-8", newline="") as f:
+        return list(csv.DictReader(f))
 
-if __name__=="__main__": main()
+
+def parse_day(value: str, *, allow_blank: bool = False) -> date | None:
+    if not value and allow_blank:
+        return None
+    assert value, "date field must not be blank"
+    return date.fromisoformat(value)
+
+
+def main() -> None:
+    anchor = read("official_anchor_2026-10-02.csv")
+    anchor_counts = Counter(row["index"] for row in anchor)
+    print("ANCHOR", anchor_counts)
+    assert anchor_counts == Counter(TARGETS), f"unexpected anchor counts: {anchor_counts}"
+    assert not any(row["symbol"].strip().upper().startswith("DUMMY") for row in anchor)
+    anchor_keys = [(row["index"], row["symbol"].strip().upper()) for row in anchor]
+    assert len(anchor_keys) == len(set(anchor_keys)), "duplicate index/symbol in canonical anchor"
+
+    intervals = read("yurukatsu_target_intervals.csv")
+    interval_counts = Counter(row["index"] for row in intervals)
+    print("INTERVALS", interval_counts)
+    assert interval_counts == Counter(EXPECTED_INTERVALS), f"unexpected PIT interval counts: {interval_counts}"
+    assert len(intervals) == 2403
+    assert not any(row["symbol"].strip().upper().startswith("DUMMY") for row in intervals), (
+        "DUMMY* placeholders must not appear in canonical PIT intervals"
+    )
+
+    interval_keys: set[tuple[str, str, str]] = set()
+    grouped: dict[tuple[str, str], list[tuple[date, date | None]]] = defaultdict(list)
+    earliest: dict[str, date] = {}
+    for row in intervals:
+        index = row["index"]
+        symbol = row["symbol"].strip().upper()
+        start = parse_day(row["valid_from"])
+        end = parse_day(row["valid_to"], allow_blank=True)
+        assert start is not None
+        assert index in TARGETS, f"unknown index in PIT interval: {index}"
+        assert end is None or end >= start, f"invalid interval for {index}/{symbol}: {start} -> {end}"
+        key = (index, symbol, start.isoformat())
+        assert key not in interval_keys, f"duplicate interval key: {key}"
+        interval_keys.add(key)
+        grouped[(index, symbol)].append((start, end))
+        earliest[index] = min(earliest.get(index, start), start)
+
+    for (index, symbol), ranges in grouped.items():
+        ranges.sort(key=lambda item: item[0])
+        for previous, current in zip(ranges, ranges[1:]):
+            previous_end = previous[1]
+            assert previous_end is not None and previous_end < current[0], (
+                f"overlapping or open-ended intervals for {index}/{symbol}: {previous} then {current}"
+            )
+
+    observed_starts = {index: day.isoformat() for index, day in earliest.items()}
+    print("EARLIEST_INTERVAL_STARTS", observed_starts)
+    assert observed_starts == EXPECTED_STARTS, f"unexpected maximum-history starts: {observed_starts}"
+
+    events = read("official_2026_interim_events.csv")
+    assert len(events) == 246, f"expected 246 official override/event rows, got {len(events)}"
+    for row in events:
+        assert row["index"] in TARGETS, f"unknown index in official events: {row['index']}"
+        parse_day(row["event_announcement_date"])
+        parse_day(row["effective_date"])
+        assert row["action"] in {"ADD", "REMOVE"}, f"unexpected event action: {row['action']}"
+        assert row["source_url"].startswith("https://"), f"missing source URL: {row}"
+        assert row["confidence"] == "OFFICIAL_PRIMARY", f"non-primary row in official event ledger: {row}"
+
+    dummies = [row for row in events if row["symbol"].strip().upper().startswith("DUMMY")]
+    print("DUMMY_EVENTS", Counter(row["index"] for row in dummies), "count", len(dummies))
+    assert len(dummies) == 10, f"expected to retain 10 DUMMY* event records, got {len(dummies)}"
+    assert all(row["canonical_effect"] == "DUMMY" for row in dummies)
+    print("OFFICIAL_EVENTS", Counter((row["index"], row["effective_date"], row["action"]) for row in events))
+    print("AUDIT PASS: anchors, PIT interval integrity, history starts, provenance, and DUMMY* exclusion")
+    
+if __name__ == "__main__":
+    main()

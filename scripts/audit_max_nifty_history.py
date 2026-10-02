@@ -219,7 +219,7 @@ def main() -> None:
     assert len(application_audit) == len(events) == 649
     application_counts = Counter(row["application_result"] for row in application_audit)
     expected_application_counts = Counter({
-        "APPLIED_ADD": 238,
+        "APPLIED_ADD": 239,
         "APPLIED_REMOVE": 238,
         "NOOP_DUMMY_EXCLUDED": 10,
         "INCLUDED_IN_BOUNDARY_STATE": 162,

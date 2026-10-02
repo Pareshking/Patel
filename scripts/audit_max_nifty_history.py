@@ -1,0 +1,272 @@
+from __future__ import annotations
+
+import csv
+from collections import Counter, defaultdict
+from datetime import date
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[1] / "data" / "nifty_index_history" / "max_history"
+TARGETS = {
+    "NIFTY50": 50,
+    "NIFTYNEXT50": 50,
+    "NIFTYMIDCAP150": 150,
+    "NIFTYSMALLCAP250": 250,
+    "NIFTYMICROCAP250": 250,
+}
+EXPECTED_INTERVALS = {
+    "NIFTY50": 83,
+    "NIFTYNEXT50": 178,
+    "NIFTYMIDCAP150": 442,
+    "NIFTYSMALLCAP250": 886,
+    "NIFTYMICROCAP250": 814,
+}
+EXPECTED_STARTS = {
+    "NIFTY50": "2014-01-01",
+    "NIFTYNEXT50": "2014-01-01",
+    "NIFTYMIDCAP150": "2016-04-01",
+    "NIFTYSMALLCAP250": "2016-04-01",
+    "NIFTYMICROCAP250": "2019-04-01",
+}
+
+
+def read(name: str) -> list[dict[str, str]]:
+    with (ROOT / name).open(encoding="utf-8", newline="") as f:
+        return list(csv.DictReader(f))
+
+
+def parse_day(value: str, *, allow_blank: bool = False) -> date | None:
+    if not value and allow_blank:
+        return None
+    assert value, "date field must not be blank"
+    return date.fromisoformat(value)
+
+
+def main() -> None:
+    anchor = read("official_anchor_2026-10-02.csv")
+    anchor_counts = Counter(row["index"] for row in anchor)
+    print("ANCHOR", anchor_counts)
+    assert anchor_counts == Counter(TARGETS), f"unexpected anchor counts: {anchor_counts}"
+    assert not any(row["symbol"].strip().upper().startswith("DUMMY") for row in anchor)
+    anchor_keys = [(row["index"], row["symbol"].strip().upper()) for row in anchor]
+    assert len(anchor_keys) == len(set(anchor_keys)), "duplicate index/symbol in canonical anchor"
+
+    intervals = read("yurukatsu_target_intervals.csv")
+    interval_counts = Counter(row["index"] for row in intervals)
+    print("INTERVALS", interval_counts)
+    assert interval_counts == Counter(EXPECTED_INTERVALS), f"unexpected PIT interval counts: {interval_counts}"
+    assert len(intervals) == 2403
+    assert not any(row["symbol"].strip().upper().startswith("DUMMY") for row in intervals), (
+        "DUMMY* placeholders must not appear in canonical PIT intervals"
+    )
+
+    interval_keys: set[tuple[str, str, str]] = set()
+    grouped: dict[tuple[str, str], list[tuple[date, date | None]]] = defaultdict(list)
+    earliest: dict[str, date] = {}
+    for row in intervals:
+        index = row["index"]
+        symbol = row["symbol"].strip().upper()
+        start = parse_day(row["valid_from"])
+        end = parse_day(row["valid_to"], allow_blank=True)
+        assert start is not None
+        assert index in TARGETS, f"unknown index in PIT interval: {index}"
+        assert end is None or end >= start, f"invalid interval for {index}/{symbol}: {start} -> {end}"
+        key = (index, symbol, start.isoformat())
+        assert key not in interval_keys, f"duplicate interval key: {key}"
+        interval_keys.add(key)
+        grouped[(index, symbol)].append((start, end))
+        earliest[index] = min(earliest.get(index, start), start)
+
+    for (index, symbol), ranges in grouped.items():
+        ranges.sort(key=lambda item: item[0])
+        for previous, current in zip(ranges, ranges[1:]):
+            previous_end = previous[1]
+            assert previous_end is not None and previous_end < current[0], (
+                f"overlapping or open-ended intervals for {index}/{symbol}: {previous} then {current}"
+            )
+
+    # The official 2025-08-22 review makes MSUMI, not MOTHERSON, the Smallcap 250 member from 2025-09-30.
+    smallcap_intervals = [row for row in intervals if row["index"] == "NIFTYSMALLCAP250"]
+    assert any(row["symbol"] == "MSUMI" and row["valid_from"] == "2025-09-30" for row in smallcap_intervals)
+    assert not any(row["symbol"] == "MOTHERSON" and row["valid_from"] == "2025-09-30" for row in smallcap_intervals)
+    # HEG's continuing security changes symbol to HEGAM; DUMMYHEG is a separate demerger placeholder.
+    heg = next(row for row in smallcap_intervals if row["symbol"] == "HEG" and row["valid_from"] == "2020-06-26")
+    assert heg["valid_to"] == "2026-09-04"
+    assert any(row["symbol"] == "HEGAM" and row["valid_from"] == "2026-09-07" and not row["valid_to"] for row in smallcap_intervals)
+
+    observed_starts = {index: day.isoformat() for index, day in earliest.items()}
+    print("EARLIEST_INTERVAL_STARTS", observed_starts)
+    assert observed_starts == EXPECTED_STARTS, f"unexpected maximum-history starts: {observed_starts}"
+
+    events = read("official_2026_interim_events.csv")
+    assert len(events) == 654, f"expected 654 official override/event rows, got {len(events)}"
+    for row in events:
+        assert row["index"] in TARGETS, f"unknown index in official events: {row['index']}"
+        parse_day(row["event_announcement_date"])
+        parse_day(row["effective_date"])
+        assert row["action"] in {"ADD", "REMOVE"}, f"unexpected event action: {row['action']}"
+        assert row["source_url"].startswith("https://"), f"missing source URL: {row}"
+        assert row["confidence"] == "OFFICIAL_PRIMARY", f"non-primary row in official event ledger: {row}"
+
+    dummies = [row for row in events if row["symbol"].strip().upper().startswith("DUMMY")]
+    print("DUMMY_EVENTS", Counter(row["index"] for row in dummies), "count", len(dummies))
+    assert len(dummies) == 10, f"expected to retain 10 DUMMY* event records, got {len(dummies)}"
+    assert all(row["canonical_effect"] == "DUMMY" for row in dummies)
+    print("OFFICIAL_EVENTS", Counter((row["index"], row["effective_date"], row["action"]) for row in events))
+
+
+    # Security identity changes are paired symbol transitions, not index adds/removals.
+    transition_keys = {(row["index"], row["effective_date"], row["action"], row["symbol"], row["source_url"])
+                       for row in events if row["canonical_effect"] == "SYMBOL_TRANSITION"}
+    assert ("NIFTYSMALLCAP250", "2026-04-15", "REMOVE", "AKZOINDIA",
+            "https://nsearchives.nseindia.com/content/circulars/CML73652.pdf") in transition_keys
+    assert ("NIFTYSMALLCAP250", "2026-04-15", "ADD", "JSWDULUX",
+            "https://nsearchives.nseindia.com/content/circulars/CML73652.pdf") in transition_keys
+    assert ("NIFTYMICROCAP250", "2025-10-16", "REMOVE", "SUNDARMHLD",
+            "https://nsearchives.nseindia.com/content/circulars/CML70756.pdf") in transition_keys
+    assert ("NIFTYMICROCAP250", "2025-10-16", "ADD", "TSFINV",
+            "https://nsearchives.nseindia.com/content/circulars/CML70756.pdf") in transition_keys
+    assert any(row["index"] == "NIFTYMICROCAP250" and row["effective_date"] == "2026-03-30"
+               and row["action"] == "REMOVE" and row["symbol"] == "ALLCARGO" for row in events)
+
+    # The raw third-party intervals are evidence, not the final canonical history.
+    # Apply official 2026 changes in the saved effective artifact and prove it ends
+    # at the exact official anchor, not merely at the right row counts.
+    effective = read("effective_intervals_2026-10-02.csv")
+    effective_counts = Counter(row["index"] for row in effective)
+    print("EFFECTIVE_INTERVALS", effective_counts)
+    assert len(effective) >= len(intervals), f"effective history unexpectedly shrank below baseline: {len(effective)}"
+    assert not any(row["symbol"].strip().upper().startswith("DUMMY") for row in effective)
+    effective_grouped: dict[tuple[str, str], list[tuple[date, date | None]]] = defaultdict(list)
+    for row in effective:
+        index = row["index"]
+        symbol = row["symbol"].strip().upper()
+        start = parse_day(row["valid_from"])
+        end = parse_day(row["valid_to"], allow_blank=True)
+        assert index in TARGETS, f"unknown effective index: {index}"
+        assert start is not None and (end is None or end >= start), f"invalid effective interval: {row}"
+        effective_grouped[(index, symbol)].append((start, end))
+    for key, ranges in effective_grouped.items():
+        ranges.sort(key=lambda item: item[0])
+        for previous, current in zip(ranges, ranges[1:]):
+            assert previous[1] is not None and previous[1] < current[0], (
+                f"overlapping effective intervals for {key}: {previous} then {current}"
+            )
+
+
+    small_akzo = next(row for row in effective if row["index"] == "NIFTYSMALLCAP250"
+                      and row["symbol"] == "AKZOINDIA" and row["valid_from"] == "2025-09-30")
+    small_jsw = next(row for row in effective if row["index"] == "NIFTYSMALLCAP250"
+                     and row["symbol"] == "JSWDULUX" and row["valid_from"] == "2026-04-15")
+    micro_sund = next(row for row in effective if row["index"] == "NIFTYMICROCAP250"
+                      and row["symbol"] == "SUNDARMHLD" and row["valid_from"] == "2025-09-30")
+    micro_tsf = next(row for row in effective if row["index"] == "NIFTYMICROCAP250"
+                     and row["symbol"] == "TSFINV" and row["valid_from"] == "2025-10-16")
+    assert small_akzo["valid_to"] == "2026-04-15" and small_jsw["valid_to"] == "2026-09-30"
+    assert micro_sund["valid_to"] == "2025-10-16" and micro_tsf["valid_to"] == "2026-09-30"
+
+    assert not any(row["index"] == "NIFTYSMALLCAP250" and row["symbol"] == "JSWDULUX"
+                   and row["valid_from"] < "2026-04-15" for row in effective), (
+        "JSWDULUX must not be backfilled before the official 2026-04-15 symbol transition"
+    )
+    assert not any(row["index"] == "NIFTYMICROCAP250" and row["symbol"] == "TSFINV"
+                   and row["valid_from"] < "2025-10-16" for row in effective), (
+        "TSFINV must not be backfilled before the official 2025-10-16 symbol transition"
+    )
+
+    def members_on(rows: list[dict[str, str]], checkpoint: str) -> set[tuple[str, str]]:
+        return {
+            (row["index"], row["symbol"].strip().upper())
+            for row in rows
+            if row["valid_from"] <= checkpoint and (not row["valid_to"] or row["valid_to"] > checkpoint)
+        }
+
+    anchor_set = set(anchor_keys)
+    effective_anchor_set = members_on(effective, "2026-10-02")
+    assert effective_anchor_set == anchor_set, (
+        f"effective history does not exactly match official anchor; "
+        f"missing={sorted(anchor_set - effective_anchor_set)[:20]}, "
+        f"extra={sorted(effective_anchor_set - anchor_set)[:20]}"
+    )
+    for checkpoint in ("2024-09-30", "2024-10-01", "2025-03-28", "2025-09-30", "2026-03-30", "2026-09-30", "2026-10-02"):
+        counts = Counter(index for index, _ in members_on(effective, checkpoint))
+        print("CHECKPOINT_COUNTS", checkpoint, {index: counts[index] for index in TARGETS})
+        if checkpoint in {"2025-09-30", "2026-03-30"}:
+            assert counts == Counter(TARGETS), f"half-year boundary cardinality mismatch at {checkpoint}: {counts}"
+
+    candidate_2025 = read("candidate_checkpoint_2025-09-30.csv")
+    candidate_2025_set = {(row["index"], row["symbol"].strip().upper()) for row in candidate_2025}
+    assert candidate_2025_set == members_on(effective, "2025-09-30"), "saved 2025-09-30 checkpoint differs from effective history"
+    assert len(candidate_2025_set) == sum(TARGETS.values()) == 750
+    gaps_2025 = read("block02_open_gaps.csv")
+    open_gap_keys = {(row["index"], row["symbol"].strip().upper()) for row in gaps_2025
+                     if row["status"].startswith("OPEN_")}
+    assert not open_gap_keys, f"Block 02 should have no open identity gaps after source-backed symbol transitions: {open_gap_keys}"
+    assert all(row["status"] == "RECONSTRUCTED_OFFICIAL_REVIEW_DELTA_VALIDATED" for row in candidate_2025), (
+        "2025 checkpoint should be validated when the source-backed gap register is empty"
+    )
+    review_2025 = [row for row in events if row["event_announcement_date"] == "2025-08-22" and row["effective_date"] == "2025-09-30"]
+    review_2025_counts = Counter((row["index"], row["action"]) for row in review_2025)
+    expected_2025_counts = Counter({
+        ("NIFTY50", "ADD"): 2, ("NIFTY50", "REMOVE"): 2,
+        ("NIFTYNEXT50", "ADD"): 4, ("NIFTYNEXT50", "REMOVE"): 4,
+        ("NIFTYMIDCAP150", "ADD"): 13, ("NIFTYMIDCAP150", "REMOVE"): 13,
+        ("NIFTYSMALLCAP250", "ADD"): 23, ("NIFTYSMALLCAP250", "REMOVE"): 23,
+        ("NIFTYMICROCAP250", "ADD"): 39, ("NIFTYMICROCAP250", "REMOVE"): 39,
+    })
+    assert review_2025_counts == expected_2025_counts, f"September 2025 official review coverage mismatch: {review_2025_counts}"
+    for event in review_2025:
+        key = (event["index"], event["symbol"].strip().upper())
+        if event["action"] == "ADD":
+            assert key in candidate_2025_set or key in open_gap_keys, f"official September 2025 addition missing without documented gap: {key}"
+        else:
+            assert key not in candidate_2025_set or key in open_gap_keys, f"official September 2025 removal still active without documented gap: {key}"
+
+    candidate_checkpoint = read("candidate_checkpoint_2026-03-30.csv")
+    candidate_set = {(row["index"], row["symbol"].strip().upper()) for row in candidate_checkpoint}
+    boundary_set = members_on(effective, "2026-03-30")
+    assert candidate_set == boundary_set, "saved Block 01 candidate checkpoint differs from effective intervals"
+    assert len(candidate_set) == sum(TARGETS.values()) == 750
+    official_review = [row for row in events if row["event_announcement_date"] == "2026-02-23" and row["effective_date"] == "2026-03-30"]
+    review_counts = Counter((row["index"], row["action"]) for row in official_review)
+    expected_review_counts = Counter({
+        ("NIFTYNEXT50", "ADD"): 6, ("NIFTYNEXT50", "REMOVE"): 6,
+        ("NIFTYMIDCAP150", "ADD"): 16, ("NIFTYMIDCAP150", "REMOVE"): 16,
+        ("NIFTYSMALLCAP250", "ADD"): 33, ("NIFTYSMALLCAP250", "REMOVE"): 33,
+        ("NIFTYMICROCAP250", "ADD"): 63, ("NIFTYMICROCAP250", "REMOVE"): 63,
+    })
+    assert review_counts == expected_review_counts, f"official March review event coverage mismatch: {review_counts}"
+    for event in official_review:
+        key = (event["index"], event["symbol"].strip().upper())
+        if event["action"] == "ADD":
+            assert key in candidate_set, f"official review addition missing from boundary: {key}"
+        else:
+            assert key not in candidate_set, f"official review removal still in boundary: {key}"
+    # Official listing circulars document the real-symbol transition from the temporary
+    # Vedanta dummy placeholders; retain these exact event rows as a regression gate.
+    vedanta_adds = {(row["symbol"], row["effective_date"], row["source_url"]) for row in events
+                    if row["index"] == "NIFTYNEXT50" and row["action"] == "ADD"
+                    and row["effective_date"] == "2026-06-15"
+                    and row["symbol"] in {"VEDPOWER", "VISL", "VAML", "VOGL"}}
+    assert len(vedanta_adds) == 4, f"missing official Vedanta symbol transitions: {vedanta_adds}"
+
+    application_audit = read("event_application_audit.csv")
+    assert len(application_audit) == len(events) == 654
+    application_counts = Counter(row["application_result"] for row in application_audit)
+    expected_application_counts = Counter({
+        "APPLIED_ADD": 241,
+        "APPLIED_REMOVE": 241,
+        "NOOP_DUMMY_EXCLUDED": 10,
+        "INCLUDED_IN_BOUNDARY_STATE": 162,
+    })
+    print("EVENT_APPLICATION_RESULTS", application_counts)
+    assert application_counts == expected_application_counts, (
+        f"event application ledger drift: {application_counts}"
+    )
+    assert all(row["source_url"].startswith("https://") for row in application_audit)
+    assert all(row["application_result"] for row in application_audit)
+    print("BLOCK02_OPEN_GAPS", gaps_2025)
+
+    print("AUDIT PASS: exact current anchor identity, Block 02 symbol continuity, 2025/2026 official review deltas, 50/50/150/250/250 checkpoints, no open identity gaps; older half-year blocks remain pending")
+
+if __name__ == "__main__":
+    main()

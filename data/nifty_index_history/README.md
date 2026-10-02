@@ -20,3 +20,8 @@ Status:
 - Current raw CSV extraction is blocked by the research environment because Nifty Indices serves CSV as application/octet-stream.
 - Official 2024 event anchors have been independently verified and are recorded separately.
 - Full Jan-2024-to-current reconstruction still requires completing every scheduled and interim notice.
+
+
+## Maximum-history reconstruction
+
+The maximum-history layer is now under [max_history/](max_history/). It anchors the official 2026-10-02 canonical snapshots, imports the pinned yurukatsu PIT reconstruction, keeps source-backed candidate events separate from official NSE/Nifty overrides, and records DUMMY corporate-action placeholders outside canonical membership. See [max_history/README.md](max_history/README.md) and [max_history/manifest.json](max_history/manifest.json).

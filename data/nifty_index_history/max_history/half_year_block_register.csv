@@ -1,0 +1,23 @@
+block_id,from_effective_date,to_effective_date,scope,status,required_evidence,notes
+ANCHOR-2026-10-02,,2026-10-02,All five indices,APPROVED_ANCHOR_ONLY,official_anchor_2026-10-02.csv,Official current constituent snapshot; exact identity set is validated against event-reconciled intervals.
+B01,2026-03-30,2026-09-30,All five indices,APPROVED_REPLAY_AND_OFFICIAL_REVIEW_DELTA_VALIDATED,official_2026_interim_events.csv; official review releases; exact snapshots at both boundaries,2026 tail reconstructed from official 2026-10-02 anchor; 2026-03-30 review deltas validated; current anchor identity exact.
+B02,2025-09-30,2026-03-30,All five indices,RECONSTRUCTED_OFFICIAL_EVENT_CHAIN_VALIDATED_PENDING_CI,Official 2025-08-22 and 2026-02-23 review releases; official NSE symbol-change circulars CML70756 and CML73652; official 2026-08-10 broad-market review; exact current anchor,"Identity chain reconciled: AKZOINDIA→JSWDULUX effective 2026-04-15 and SUNDARMHLD→TSFINV effective 2025-10-16 are symbol transitions, not index exits/additions. Restored official ALLCARGO removal from 2026-02-23 Microcap 250 review; DUMMYALCAR excluded from canonical membership. Reconstructed counts are 50/50/150/250/250 at both boundaries, with no open identity gaps. CI validation pending."
+B03,2025-03-28,2025-09-30,All five indices,PENDING,official 2025-08 review release and exact boundary snapshots,Use effective dates from official notices; reconcile symbol/corporate-action changes.
+B04,2024-09-30,2025-03-28,All five indices,PENDING,official 2025-02 review release and exact boundary snapshots,Use ZOMATO at the 2025-03-28 boundary; do not backdate ETERNAL.
+B05,2024-03-28,2024-09-30,All five indices,PENDING,official 2024-08 review release and exact boundary snapshots,Boundary membership must be independently checked.
+B06,2023-09-29,2024-03-28,All five indices,PENDING,official review notices and exact boundary snapshots,Work backwards only after B05 passes.
+B07,2023-03-31,2023-09-29,All five indices,PENDING,official review notices and exact boundary snapshots,Work backwards only after B06 passes.
+B08,2022-09-30,2023-03-31,All five indices,PENDING,official review notices and exact boundary snapshots,Work backwards only after B07 passes.
+B09,2022-03-31,2022-09-30,All five indices,PENDING,official review notices and exact boundary snapshots,Work backwards only after B08 passes.
+B10,2021-09-30,2022-03-31,All five indices,PENDING,official review notices and exact boundary snapshots,Work backwards only after B09 passes.
+B11,2021-03-31,2021-09-30,All five indices,PENDING,official review notices and exact boundary snapshots,Work backwards only after B10 passes.
+B12,2020-09-30,2021-03-31,All five indices,PENDING,official review notices and exact boundary snapshots,Work backwards only after B11 passes.
+B13,2020-03-31,2020-09-30,All five indices,PENDING,official review notices and exact boundary snapshots,Work backwards only after B12 passes.
+B14,2019-09-30,2020-03-31,NIFTY50; NIFTYNEXT50; NIFTYMIDCAP150; NIFTYSMALLCAP250,PENDING,official review notices and exact boundary snapshots,Microcap work is intentionally scoped from 2020 onward.
+B15,2019-03-29,2019-09-30,NIFTY50; NIFTYNEXT50; NIFTYMIDCAP150; NIFTYSMALLCAP250,PENDING,official review notices and exact boundary snapshots,Microcap excluded from this and earlier blocks.
+B16,2018-09-28,2019-03-29,NIFTY50; NIFTYNEXT50; NIFTYMIDCAP150; NIFTYSMALLCAP250,PENDING,official review notices and exact boundary snapshots,Microcap excluded from this and earlier blocks.
+B17,2018-03-28,2018-09-28,NIFTY50; NIFTYNEXT50; NIFTYMIDCAP150; NIFTYSMALLCAP250,PENDING,official review notices and exact boundary snapshots,Microcap excluded from this and earlier blocks.
+B18,2017-09-29,2018-03-28,NIFTY50; NIFTYNEXT50; NIFTYMIDCAP150; NIFTYSMALLCAP250,PENDING,official review notices and exact boundary snapshots,Microcap excluded from this and earlier blocks.
+B19,2017-03-31,2017-09-29,NIFTY50; NIFTYNEXT50; NIFTYMIDCAP150; NIFTYSMALLCAP250,PENDING,official review notices and exact boundary snapshots,Microcap excluded from this and earlier blocks.
+B20,2016-09-30,2017-03-31,NIFTY50; NIFTYNEXT50; NIFTYMIDCAP150; NIFTYSMALLCAP250,PENDING,official review notices and exact boundary snapshots,Midcap/Smallcap indices begin in 2016; check index launch dates and actual membership scope.
+B21,2016-03-31,2016-09-30,NIFTY50; NIFTYNEXT50,PENDING,official review notices and exact boundary snapshots,Midcap/Smallcap scope begins only when the index existed.

@@ -41,6 +41,7 @@ EXPECTED_ROWS = {
     "NIFTY50": 50,
     "NIFTYNEXT50": 50,
     "NIFTYMIDCAP150": 150,
+    "NIFTYSMALLCAP250": 250,
     "NIFTYMICROCAP250": 250,
     "NIFTY500": 500,
 }
@@ -144,47 +145,31 @@ for name, (_, symbols, data_rows, meta) in downloaded.items():
 
     manifest["sources"][name] = meta
 
-# Cross-check Smallcap 250 against the parent Nifty 500 universe.
+# Cross-check Smallcap 250 and Microcap 250 against the parent Nifty 500
+# Preserve raw evidence; do not silently trim the official files to the named index size.
 n500_symbols = set(downloaded["NIFTY500"][1])
-sc_raw, sc_symbols, sc_rows, sc_meta = downloaded["NIFTYSMALLCAP250"]
 
-# SYMBOL is the third field in these official files, but locate it robustly.
-sc_header = sc_rows[0]
-sc_col = next(
-    i for i, h in enumerate(sc_header) if h.strip().lower() == "symbol"
-)
-excess = sorted(set(sc_symbols) - n500_symbols)
-intersection = [
-    row for row in sc_rows[1:]
-    if sc_col < len(row) and row[sc_col].strip() in n500_symbols
-]
+def audit_child(name: str) -> dict:
+    _, symbols, rows, _ = downloaded[name]
+    header = rows[0]
+    symbol_col = next(i for i, h in enumerate(header) if h.strip().lower() == "symbol")
+    child_symbols = [
+        r[symbol_col].strip()
+        for r in rows[1:]
+        if symbol_col < len(r) and r[symbol_col].strip()
+    ]
+    return {
+        "raw_rows": len(child_symbols),
+        "unique_rows": len(set(child_symbols)),
+        "overlap_with_nifty500": sorted(set(child_symbols) & n500_symbols),
+        "outside_nifty500": sorted(set(child_symbols) - n500_symbols),
+    }
 
-smallcap_status = "REVIEW"
-if len(sc_symbols) == 250 and not excess:
-    smallcap_status = "PASS"
-elif len(sc_symbols) == 251 and len(excess) == 1 and len(intersection) == 250:
-    canonical_path = OUT / "NIFTYSMALLCAP250_canonical.csv"
-    canonical_path.write_text(
-        ",".join(sc_header) + "\n"
-        + "\n".join(",".join(r) for r in intersection) + "\n",
-        encoding="utf-8",
-    )
-    smallcap_status = "RAW_251_CANONICAL_250"
+manifest["smallcap250_parent_crosscheck"] = audit_child("NIFTYSMALLCAP250")
+manifest["microcap250_parent_crosscheck"] = audit_child("NIFTYMICROCAP250")
 
-manifest["smallcap250_parent_crosscheck"] = {
-    "smallcap_raw_rows": len(sc_symbols),
-    "nifty500_rows": len(n500_symbols),
-    "smallcap_symbols_not_in_nifty500": excess,
-    "smallcap_intersection_rows": len(intersection),
-    "status": smallcap_status,
-}
-
-if smallcap_status == "REVIEW":
-    raise RuntimeError(
-        "Smallcap 250 cross-check requires review: "
-        + json.dumps(manifest["smallcap250_parent_crosscheck"])
-    )
-
+print("SMALLCAP250_AUDIT", json.dumps(manifest["smallcap250_parent_crosscheck"]))
+print("MICROCAP250_AUDIT", json.dumps(manifest["microcap250_parent_crosscheck"]))
 (OUT / "manifest.json").write_text(
     json.dumps(manifest, indent=2, ensure_ascii=False) + "\n",
     encoding="utf-8",

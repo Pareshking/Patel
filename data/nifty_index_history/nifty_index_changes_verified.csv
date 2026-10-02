@@ -1,0 +1,59 @@
+index,event_announcement_date,effective_date,action,symbol,company_name,source_url,source_type,notes
+NIFTY50,2024-02-28,2024-03-28,REMOVE,UPL,UPL,https://nsearchives.nseindia.com/web/sites/default/files/2024-02/ind_prs28022024.pdf,NSE/Nifty press release,Periodic replacement
+NIFTY50,2024-02-28,2024-03-28,ADD,SHRIRAMFIN,Shriram Finance,https://nsearchives.nseindia.com/web/sites/default/files/2024-02/ind_prs28022024.pdf,NSE/Nifty press release,Periodic replacement
+NIFTYNEXT50,2024-02-28,2024-03-28,REMOVE,AWL,Adani Wilmar,https://nsearchives.nseindia.com/web/sites/default/files/2024-02/ind_prs28022024.pdf,NSE/Nifty press release,Periodic replacement
+NIFTYNEXT50,2024-02-28,2024-03-28,REMOVE,MUTHOOTFIN,Muthoot Finance,https://nsearchives.nseindia.com/web/sites/default/files/2024-02/ind_prs28022024.pdf,NSE/Nifty press release,Periodic replacement
+NIFTYNEXT50,2024-02-28,2024-03-28,REMOVE,PIIND,PI Industries,https://nsearchives.nseindia.com/web/sites/default/files/2024-02/ind_prs28022024.pdf,NSE/Nifty press release,Periodic replacement
+NIFTYNEXT50,2024-02-28,2024-03-28,REMOVE,PGHH,Procter & Gamble Hygiene and Health Care,https://nsearchives.nseindia.com/web/sites/default/files/2024-02/ind_prs28022024.pdf,NSE/Nifty press release,Periodic replacement
+NIFTYNEXT50,2024-02-28,2024-03-28,REMOVE,SHRIRAMFIN,Shriram Finance,https://nsearchives.nseindia.com/web/sites/default/files/2024-02/ind_prs28022024.pdf,NSE/Nifty press release,Periodic replacement
+NIFTYNEXT50,2024-02-28,2024-03-28,ADD,ADANIPOWER,Adani Power,https://nsearchives.nseindia.com/web/sites/default/files/2024-02/ind_prs28022024.pdf,NSE/Nifty press release,Periodic replacement
+NIFTYNEXT50,2024-02-28,2024-03-28,ADD,IRFC,Indian Railway Finance Corporation,https://nsearchives.nseindia.com/web/sites/default/files/2024-02/ind_prs28022024.pdf,NSE/Nifty press release,Periodic replacement
+NIFTYNEXT50,2024-02-28,2024-03-28,ADD,JIOFIN,Jio Financial Services,https://nsearchives.nseindia.com/web/sites/default/files/2024-02/ind_prs28022024.pdf,NSE/Nifty press release,Periodic replacement
+NIFTYNEXT50,2024-02-28,2024-03-28,ADD,PFC,Power Finance Corporation,https://nsearchives.nseindia.com/web/sites/default/files/2024-02/ind_prs28022024.pdf,NSE/Nifty press release,Periodic replacement
+NIFTYNEXT50,2024-02-28,2024-03-28,ADD,RECLTD,REC,https://nsearchives.nseindia.com/web/sites/default/files/2024-02/ind_prs28022024.pdf,NSE/Nifty press release,Periodic replacement
+NIFTYMIDCAP150,2024-02-28,2024-03-28,REMOVE,AARTIIND,Aarti Industries,https://nsearchives.nseindia.com/web/sites/default/files/2024-02/ind_prs28022024.pdf,NSE/Nifty press release,Periodic replacement
+NIFTYMIDCAP150,2024-02-28,2024-03-28,REMOVE,ADANIPOWER,Adani Power,https://nsearchives.nseindia.com/web/sites/default/files/2024-02/ind_prs28022024.pdf,NSE/Nifty press release,Periodic replacement
+NIFTYMIDCAP150,2024-02-28,2024-03-28,REMOVE,BLUEDART,Blue Dart Express,https://nsearchives.nseindia.com/web/sites/default/files/2024-02/ind_prs28022024.pdf,NSE/Nifty press release,Periodic replacement
+NIFTYMIDCAP150,2024-02-28,2024-03-28,REMOVE,CROMPTON,Crompton Greaves Consumer Electricals,https://nsearchives.nseindia.com/web/sites/default/files/2024-02/ind_prs28022024.pdf,NSE/Nifty press release,Periodic replacement
+NIFTYMIDCAP150,2024-02-28,2024-03-28,REMOVE,IRFC,Indian Railway Finance Corporation,https://nsearchives.nseindia.com/web/sites/default/files/2024-02/ind_prs28022024.pdf,NSE/Nifty press release,Periodic replacement
+NIFTYMIDCAP150,2024-02-28,2024-03-28,REMOVE,NAVINFLUOR,Navin Fluorine International,https://nsearchives.nseindia.com/web/sites/default/files/2024-02/ind_prs28022024.pdf,NSE/Nifty press release,Periodic replacement
+NIFTYMIDCAP150,2024-02-28,2024-03-28,REMOVE,PFIZER,Pfizer,https://nsearchives.nseindia.com/web/sites/default/files/2024-02/ind_prs28022024.pdf,NSE/Nifty press release,Periodic replacement
+NIFTYMIDCAP150,2024-02-28,2024-03-28,REMOVE,PFC,Power Finance Corporation,https://nsearchives.nseindia.com/web/sites/default/files/2024-02/ind_prs28022024.pdf,NSE/Nifty press release,Periodic replacement
+NIFTYMIDCAP150,2024-02-28,2024-03-28,REMOVE,RAJESHEXPO,Rajesh Exports,https://nsearchives.nseindia.com/web/sites/default/files/2024-02/ind_prs28022024.pdf,NSE/Nifty press release,Periodic replacement
+NIFTYMIDCAP150,2024-02-28,2024-03-28,REMOVE,RECLTD,REC,https://nsearchives.nseindia.com/web/sites/default/files/2024-02/ind_prs28022024.pdf,NSE/Nifty press release,Periodic replacement
+NIFTYMIDCAP150,2024-02-28,2024-03-28,REMOVE,RELAXO,Relaxo Footwears,https://nsearchives.nseindia.com/web/sites/default/files/2024-02/ind_prs28022024.pdf,NSE/Nifty press release,Periodic replacement
+NIFTYMIDCAP150,2024-02-28,2024-03-28,REMOVE,TRIDENT,Trident,https://nsearchives.nseindia.com/web/sites/default/files/2024-02/ind_prs28022024.pdf,NSE/Nifty press release,Periodic replacement
+NIFTYMIDCAP150,2024-02-28,2024-03-28,REMOVE,VINATIORGA,Vinati Organics,https://nsearchives.nseindia.com/web/sites/default/files/2024-02/ind_prs28022024.pdf,NSE/Nifty press release,Periodic replacement
+NIFTYMIDCAP150,2024-02-28,2024-03-28,REMOVE,WHIRLPOOL,Whirlpool of India,https://nsearchives.nseindia.com/web/sites/default/files/2024-02/ind_prs28022024.pdf,NSE/Nifty press release,Periodic replacement
+NIFTYMIDCAP150,2024-02-28,2024-03-28,ADD,AWL,Adani Wilmar,https://nsearchives.nseindia.com/web/sites/default/files/2024-02/ind_prs28022024.pdf,NSE/Nifty press release,Periodic replacement
+NIFTYMIDCAP150,2024-02-28,2024-03-28,ADD,IDBI,IDBI Bank,https://nsearchives.nseindia.com/web/sites/default/files/2024-02/ind_prs28022024.pdf,NSE/Nifty press release,Periodic replacement
+NIFTYMIDCAP150,2024-02-28,2024-03-28,ADD,IREDA,Indian Renewable Energy Development Agency,https://nsearchives.nseindia.com/web/sites/default/files/2024-02/ind_prs28022024.pdf,NSE/Nifty press release,Periodic replacement
+NIFTYMIDCAP150,2024-02-28,2024-03-28,ADD,JSWINFRA,JSW Infrastructure,https://nsearchives.nseindia.com/web/sites/default/files/2024-02/ind_prs28022024.pdf,NSE/Nifty press release,Periodic replacement
+NIFTYMIDCAP150,2024-02-28,2024-03-28,ADD,KALYANKJIL,Kalyan Jewellers India,https://nsearchives.nseindia.com/web/sites/default/files/2024-02/ind_prs28022024.pdf,NSE/Nifty press release,Periodic replacement
+NIFTYMIDCAP150,2024-02-28,2024-03-28,ADD,KEI,KEI Industries,https://nsearchives.nseindia.com/web/sites/default/files/2024-02/ind_prs28022024.pdf,NSE/Nifty press release,Periodic replacement
+NIFTYMIDCAP150,2024-02-28,2024-03-28,ADD,LLOYDSME,Lloyds Metals and Energy,https://nsearchives.nseindia.com/web/sites/default/files/2024-02/ind_prs28022024.pdf,NSE/Nifty press release,Periodic replacement
+NIFTYMIDCAP150,2024-02-28,2024-03-28,ADD,MUTHOOTFIN,Muthoot Finance,https://nsearchives.nseindia.com/web/sites/default/files/2024-02/ind_prs28022024.pdf,NSE/Nifty press release,Periodic replacement
+NIFTYMIDCAP150,2024-02-28,2024-03-28,ADD,PIIND,PI Industries,https://nsearchives.nseindia.com/web/sites/default/files/2024-02/ind_prs28022024.pdf,NSE/Nifty press release,Periodic replacement
+NIFTYMIDCAP150,2024-02-28,2024-03-28,ADD,PGHH,Procter & Gamble Hygiene and Health Care,https://nsearchives.nseindia.com/web/sites/default/files/2024-02/ind_prs28022024.pdf,NSE/Nifty press release,Periodic replacement
+NIFTYMIDCAP150,2024-02-28,2024-03-28,ADD,SJVN,SJVN,https://nsearchives.nseindia.com/web/sites/default/files/2024-02/ind_prs28022024.pdf,NSE/Nifty press release,Periodic replacement
+NIFTYMIDCAP150,2024-02-28,2024-03-28,ADD,SUZLON,Suzlon Energy,https://nsearchives.nseindia.com/web/sites/default/files/2024-02/ind_prs28022024.pdf,NSE/Nifty press release,Periodic replacement
+NIFTYMIDCAP150,2024-02-28,2024-03-28,ADD,TATATECH,Tata Technologies,https://nsearchives.nseindia.com/web/sites/default/files/2024-02/ind_prs28022024.pdf,NSE/Nifty press release,Periodic replacement
+NIFTYMIDCAP150,2024-02-28,2024-03-28,ADD,UPL,UPL,https://nsearchives.nseindia.com/web/sites/default/files/2024-02/ind_prs28022024.pdf,NSE/Nifty press release,Periodic replacement
+NIFTY50,2024-08-23,2024-09-30,REMOVE,DIVISLAB,Divi's Laboratories,https://nsearchives.nseindia.com/web/sites/default/files/2024-08/ind_prs23082024.pdf,NSE/Nifty press release,Periodic replacement
+NIFTY50,2024-08-23,2024-09-30,REMOVE,LTIM,LTIMindtree,https://nsearchives.nseindia.com/web/sites/default/files/2024-08/ind_prs23082024.pdf,NSE/Nifty press release,Periodic replacement
+NIFTY50,2024-08-23,2024-09-30,ADD,BEL,Bharat Electronics,https://nsearchives.nseindia.com/web/sites/default/files/2024-08/ind_prs23082024.pdf,NSE/Nifty press release,Periodic replacement
+NIFTY50,2024-08-23,2024-09-30,ADD,TRENT,Trent,https://nsearchives.nseindia.com/web/sites/default/files/2024-08/ind_prs23082024.pdf,NSE/Nifty press release,Periodic replacement
+NIFTYNEXT50,2024-08-23,2024-09-30,REMOVE,BERGEPAINT,Berger Paints India,https://nsearchives.nseindia.com/web/sites/default/files/2024-08/ind_prs23082024.pdf,NSE/Nifty press release,Periodic replacement
+NIFTYNEXT50,2024-08-23,2024-09-30,REMOVE,BEL,Bharat Electronics,https://nsearchives.nseindia.com/web/sites/default/files/2024-08/ind_prs23082024.pdf,NSE/Nifty press release,Periodic replacement
+NIFTYNEXT50,2024-08-23,2024-09-30,REMOVE,COLPAL,Colgate-Palmolive India,https://nsearchives.nseindia.com/web/sites/default/files/2024-08/ind_prs23082024.pdf,NSE/Nifty press release,Periodic replacement
+NIFTYNEXT50,2024-08-23,2024-09-30,REMOVE,MARICO,Marico,https://nsearchives.nseindia.com/web/sites/default/files/2024-08/ind_prs23082024.pdf,NSE/Nifty press release,Periodic replacement
+NIFTYNEXT50,2024-08-23,2024-09-30,REMOVE,SBICARD,SBI Cards and Payment Services,https://nsearchives.nseindia.com/web/sites/default/files/2024-08/ind_prs23082024.pdf,NSE/Nifty press release,Periodic replacement
+NIFTYNEXT50,2024-08-23,2024-09-30,REMOVE,SRF,SRF,https://nsearchives.nseindia.com/web/sites/default/files/2024-08/ind_prs23082024.pdf,NSE/Nifty press release,Periodic replacement
+NIFTYNEXT50,2024-08-23,2024-09-30,REMOVE,TRENT,Trent,https://nsearchives.nseindia.com/web/sites/default/files/2024-08/ind_prs23082024.pdf,NSE/Nifty press release,Periodic replacement
+NIFTYNEXT50,2024-08-23,2024-09-30,ADD,BHEL,Bharat Heavy Electricals,https://nsearchives.nseindia.com/web/sites/default/files/2024-08/ind_prs23082024.pdf,NSE/Nifty press release,Periodic replacement
+NIFTYNEXT50,2024-08-23,2024-09-30,ADD,DIVISLAB,Divi's Laboratories,https://nsearchives.nseindia.com/web/sites/default/files/2024-08/ind_prs23082024.pdf,NSE/Nifty press release,Periodic replacement
+NIFTYNEXT50,2024-08-23,2024-09-30,ADD,JSWENERGY,JSW Energy,https://nsearchives.nseindia.com/web/sites/default/files/2024-08/ind_prs23082024.pdf,NSE/Nifty press release,Periodic replacement
+NIFTYNEXT50,2024-08-23,2024-09-30,ADD,LTIM,LTIMindtree,https://nsearchives.nseindia.com/web/sites/default/files/2024-08/ind_prs23082024.pdf,NSE/Nifty press release,Periodic replacement
+NIFTYNEXT50,2024-08-23,2024-09-30,ADD,LODHA,Macrotech Developers,https://nsearchives.nseindia.com/web/sites/default/files/2024-08/ind_prs23082024.pdf,NSE/Nifty press release,Periodic replacement
+NIFTYNEXT50,2024-08-23,2024-09-30,ADD,NHPC,NHPC,https://nsearchives.nseindia.com/web/sites/default/files/2024-08/ind_prs23082024.pdf,NSE/Nifty press release,Periodic replacement
+NIFTYNEXT50,2024-08-23,2024-09-30,ADD,UNIONBANK,Union Bank of India,https://nsearchives.nseindia.com/web/sites/default/files/2024-08/ind_prs23082024.pdf,NSE/Nifty press release,Periodic replacement

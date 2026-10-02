@@ -98,7 +98,7 @@ def main() -> None:
     assert observed_starts == EXPECTED_STARTS, f"unexpected maximum-history starts: {observed_starts}"
 
     events = read("official_2026_interim_events.csv")
-    assert len(events) == 649, f"expected 649 official override/event rows, got {len(events)}"
+    assert len(events) == 654, f"expected 654 official override/event rows, got {len(events)}"
     for row in events:
         assert row["index"] in TARGETS, f"unknown index in official events: {row['index']}"
         parse_day(row["event_announcement_date"])
@@ -112,6 +112,21 @@ def main() -> None:
     assert len(dummies) == 10, f"expected to retain 10 DUMMY* event records, got {len(dummies)}"
     assert all(row["canonical_effect"] == "DUMMY" for row in dummies)
     print("OFFICIAL_EVENTS", Counter((row["index"], row["effective_date"], row["action"]) for row in events))
+
+
+    # Security identity changes are paired symbol transitions, not index adds/removals.
+    transition_keys = {(row["index"], row["effective_date"], row["action"], row["symbol"], row["source_url"])
+                       for row in events if row["canonical_effect"] == "SYMBOL_TRANSITION"}
+    assert ("NIFTYSMALLCAP250", "2026-04-15", "REMOVE", "AKZOINDIA",
+            "https://nsearchives.nseindia.com/content/circulars/CML73652.pdf") in transition_keys
+    assert ("NIFTYSMALLCAP250", "2026-04-15", "ADD", "JSWDULUX",
+            "https://nsearchives.nseindia.com/content/circulars/CML73652.pdf") in transition_keys
+    assert ("NIFTYMICROCAP250", "2025-10-16", "REMOVE", "SUNDARMHLD",
+            "https://nsearchives.nseindia.com/content/circulars/CML70756.pdf") in transition_keys
+    assert ("NIFTYMICROCAP250", "2025-10-16", "ADD", "TSFINV",
+            "https://nsearchives.nseindia.com/content/circulars/CML70756.pdf") in transition_keys
+    assert any(row["index"] == "NIFTYMICROCAP250" and row["effective_date"] == "2026-03-30"
+               and row["action"] == "REMOVE" and row["symbol"] == "ALLCARGO" for row in events)
 
     # The raw third-party intervals are evidence, not the final canonical history.
     # Apply official 2026 changes in the saved effective artifact and prove it ends
@@ -136,6 +151,18 @@ def main() -> None:
             assert previous[1] is not None and previous[1] < current[0], (
                 f"overlapping effective intervals for {key}: {previous} then {current}"
             )
+
+
+    small_akzo = next(row for row in effective if row["index"] == "NIFTYSMALLCAP250"
+                      and row["symbol"] == "AKZOINDIA" and row["valid_from"] == "2025-09-30")
+    small_jsw = next(row for row in effective if row["index"] == "NIFTYSMALLCAP250"
+                     and row["symbol"] == "JSWDULUX" and row["valid_from"] == "2026-04-15")
+    micro_sund = next(row for row in effective if row["index"] == "NIFTYMICROCAP250"
+                      and row["symbol"] == "SUNDARMHLD" and row["valid_from"] == "2025-09-30")
+    micro_tsf = next(row for row in effective if row["index"] == "NIFTYMICROCAP250"
+                     and row["symbol"] == "TSFINV" and row["valid_from"] == "2025-10-16")
+    assert small_akzo["valid_to"] == "2026-04-15" and small_jsw["valid_to"] == "2026-09-30"
+    assert micro_sund["valid_to"] == "2025-10-16" and micro_tsf["valid_to"] == "2026-09-30"
 
     def members_on(rows: list[dict[str, str]], checkpoint: str) -> set[tuple[str, str]]:
         return {
@@ -164,11 +191,9 @@ def main() -> None:
     gaps_2025 = read("block02_open_gaps.csv")
     open_gap_keys = {(row["index"], row["symbol"].strip().upper()) for row in gaps_2025
                      if row["status"].startswith("OPEN_")}
-    assert open_gap_keys == {("NIFTYSMALLCAP250", "AKZOINDIA"), ("NIFTYMICROCAP250", "SUNDARMHLD")}, (
-        f"Block 02 open-gap register mismatch: {open_gap_keys}"
-    )
-    assert all(row["status"] == "BLOCKED_OPEN_IDENTITY_GAPS" for row in candidate_2025), (
-        "checkpoint must remain blocked while unresolved identity gaps exist"
+    assert not open_gap_keys, f"Block 02 should have no open identity gaps after source-backed symbol transitions: {open_gap_keys}"
+    assert all(row["status"] == "RECONSTRUCTED_OFFICIAL_REVIEW_DELTA_VALIDATED" for row in candidate_2025), (
+        "2025 checkpoint should be validated when the source-backed gap register is empty"
     )
     review_2025 = [row for row in events if row["event_announcement_date"] == "2025-08-22" and row["effective_date"] == "2025-09-30"]
     review_2025_counts = Counter((row["index"], row["action"]) for row in review_2025)
@@ -198,7 +223,7 @@ def main() -> None:
         ("NIFTYNEXT50", "ADD"): 6, ("NIFTYNEXT50", "REMOVE"): 6,
         ("NIFTYMIDCAP150", "ADD"): 16, ("NIFTYMIDCAP150", "REMOVE"): 16,
         ("NIFTYSMALLCAP250", "ADD"): 33, ("NIFTYSMALLCAP250", "REMOVE"): 33,
-        ("NIFTYMICROCAP250", "ADD"): 63, ("NIFTYMICROCAP250", "REMOVE"): 62,
+        ("NIFTYMICROCAP250", "ADD"): 63, ("NIFTYMICROCAP250", "REMOVE"): 63,
     })
     assert review_counts == expected_review_counts, f"official March review event coverage mismatch: {review_counts}"
     for event in official_review:
@@ -216,11 +241,11 @@ def main() -> None:
     assert len(vedanta_adds) == 4, f"missing official Vedanta symbol transitions: {vedanta_adds}"
 
     application_audit = read("event_application_audit.csv")
-    assert len(application_audit) == len(events) == 649
+    assert len(application_audit) == len(events) == 654
     application_counts = Counter(row["application_result"] for row in application_audit)
     expected_application_counts = Counter({
-        "APPLIED_ADD": 239,
-        "APPLIED_REMOVE": 238,
+        "APPLIED_ADD": 241,
+        "APPLIED_REMOVE": 241,
         "NOOP_DUMMY_EXCLUDED": 10,
         "INCLUDED_IN_BOUNDARY_STATE": 162,
     })
@@ -232,7 +257,7 @@ def main() -> None:
     assert all(row["application_result"] for row in application_audit)
     print("BLOCK02_OPEN_GAPS", gaps_2025)
 
-    print("AUDIT PASS: current anchor identity, Blocks 01-02 cardinality, official review deltas and explicit Block 02 gap register; Block 02 remains unapproved pending source-backed identity reconciliation")
+    print("AUDIT PASS: exact current anchor identity, Block 02 symbol continuity, 2025/2026 official review deltas, 50/50/150/250/250 checkpoints, no open identity gaps; older half-year blocks remain pending")
 
 if __name__ == "__main__":
     main()

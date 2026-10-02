@@ -119,7 +119,7 @@ def main() -> None:
     effective = read("effective_intervals_2026-10-02.csv")
     effective_counts = Counter(row["index"] for row in effective)
     print("EFFECTIVE_INTERVALS", effective_counts)
-    assert len(effective) >= 2521, f"effective history unexpectedly shrank: {len(effective)}"
+    assert len(effective) >= len(intervals), f"effective history unexpectedly shrank below baseline: {len(effective)}"
     assert not any(row["symbol"].strip().upper().startswith("DUMMY") for row in effective)
     effective_grouped: dict[tuple[str, str], list[tuple[date, date | None]]] = defaultdict(list)
     for row in effective:

@@ -22,7 +22,7 @@ Reconstruction anchor: **2026-10-02 official NSE/Nifty constituent snapshots**. 
 
 - **2026-10-02:** official anchor, exact 750-symbol identity match.
 - **2026-03-30 checkpoint:** latest official 2026 review deltas replayed and cardinality-checked.
-- **2025-09-30 checkpoint:** reconstructed from the official current anchor and official event chain; exact cardinalities are 50/50/150/250/250 and the Block 02 open-gap register is empty. The two reported identity gaps were symbol changes, not index exits: `SUNDARMHLD` → `TSFINV` effective 2025-10-16 and `AKZOINDIA` → `JSWDULUX` effective 2026-04-15, both supported by NSE listing circulars. The official 2026-02-23 Microcap 250 review's `ALLCARGO` removal is also restored; `DUMMYALCAR` remains excluded from canonical membership. Regenerated artifacts are pending CI validation.
+- **2025-09-30 checkpoint:** reconstructed from the official current anchor and official event chain; exact cardinalities are 50/50/150/250/250 and the Block 02 open-gap register is empty. The two reported identity gaps were symbol changes, not index exits: `SUNDARMHLD` → `TSFINV` effective 2025-10-16 and `AKZOINDIA` → `JSWDULUX` effective 2026-04-15, both supported by NSE listing circulars. Retroactively backfilled `TSFINV` and `JSWDULUX` snapshot aliases before those dates are excluded. The official 2026-02-23 Microcap 250 review's `ALLCARGO` removal is restored; `DUMMYALCAR` remains excluded from canonical membership. Regenerated artifacts are pending CI validation.
 - Older half-year blocks remain pending until identity-level reconciliation is complete. A passing structural CI run is not an approval of those blocks.
 
 ## Upstream limitations

@@ -18,6 +18,13 @@ Reconstruction anchor: **2026-10-02 official NSE/Nifty constituent snapshots**. 
 5. Upstream rows marked `snapshot_floor` or `inferred` remain visibly classified as inferred/snapshot-derived.
 6. A future final PIT table should be generated only after event-chain reconciliation against the official release archive; this folder intentionally preserves the raw acceleration layer and authoritative overrides separately so provenance is reproducible.
 
+## Half-year reconstruction status
+
+- **2026-10-02:** official anchor, exact 750-symbol identity match.
+- **2026-03-30 checkpoint:** latest official 2026 review deltas replayed and cardinality-checked.
+- **2025-09-30 checkpoint:** reconstructed from the official current anchor and 2025/2026 event chain; cardinality matches, but the checkpoint is **BLOCKED** pending source-backed resolution of AKZOINDIA (Smallcap 250) and SUNDARMHLD (Microcap 250). See `block02_open_gaps.csv`. The SUNDARMHLD exit is inferred only and is not approved evidence.
+- Older half-year blocks remain pending until identity-level reconciliation is complete. A passing structural CI run is not an approval of those blocks.
+
 ## Upstream limitations
 
 The pinned upstream dataset reports membership through 2026-05-15 and last validation 2026-05-22. It claims high confidence from 2017 onward, with broad-family PR coverage extending earlier; Microcap 250 is described as reliable from 2021-10 onward where PR coverage begins. That means this folder is deliberately a **maximum-history reconstruction layer**, not a claim that every row is equally authoritative.

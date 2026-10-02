@@ -1,0 +1,11 @@
+index,effective_date,action,count
+Nifty 50,2026-09-30,ADD,1
+Nifty 50,2026-09-30,REMOVE,1
+Nifty Next 50,2026-09-30,ADD,5
+Nifty Next 50,2026-09-30,REMOVE,5
+Nifty Midcap 150,2026-09-30,ADD,13
+Nifty Midcap 150,2026-09-30,REMOVE,13
+Nifty Smallcap 250,2026-09-30,ADD,33
+Nifty Smallcap 250,2026-09-30,REMOVE,33
+Nifty Microcap 250,2026-09-30,ADD,59
+Nifty Microcap 250,2026-09-30,REMOVE,59

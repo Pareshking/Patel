@@ -144,14 +144,16 @@ for name, (_, symbols, data_rows, meta) in downloaded.items():
 n500_symbols = set(downloaded["NIFTY500"][1])
 
 def symbol_rows(name: str) -> tuple[list[str], list[list[str]]]:
-    _, symbols, rows, _ = downloaded[name]
-    header = rows[0]
+    _, _, rows, meta = downloaded[name]
+    header = meta["columns"]
     symbol_col = next(i for i, h in enumerate(header) if h.strip().lower() == "symbol")
-    data = [r for r in rows[1:] if any(cell.strip() for cell in r)]
-    return (
-        [r[symbol_col].strip() for r in data if symbol_col < len(r) and r[symbol_col].strip()],
-        data,
-    )
+    data = rows
+    symbols = [
+        r[symbol_col].strip()
+        for r in data
+        if symbol_col < len(r) and r[symbol_col].strip()
+    ]
+    return symbols, data
 
 def hierarchy_audit(name: str) -> dict:
     symbols, rows = symbol_rows(name)
@@ -166,6 +168,17 @@ def hierarchy_audit(name: str) -> dict:
 manifest["smallcap250_parent_crosscheck"] = hierarchy_audit("NIFTYSMALLCAP250")
 manifest["microcap250_parent_crosscheck"] = hierarchy_audit("NIFTYMICROCAP250")
 
+# Nifty 500 itself is audited for any rows beyond the nominal 500.
+n500_rows = symbol_rows("NIFTY500")[0]
+manifest["nifty500_row_audit"] = {
+    "raw_rows": len(n500_rows),
+    "unique_rows": len(set(n500_rows)),
+    "tail_symbols": n500_rows[-10:],
+}
+
+print("NIFTY500_AUDIT", json.dumps(manifest["nifty500_row_audit"]))
+print("SMALLCAP250_AUDIT", json.dumps(manifest["smallcap250_parent_crosscheck"]))
+print("MICROCAP250_AUDIT", json.dumps(manifest["microcap250_parent_crosscheck"]))
 # Nifty 500 itself is audited for any rows beyond the nominal 500.
 n500_rows = symbol_rows("NIFTY500")[0]
 manifest["nifty500_row_audit"] = {

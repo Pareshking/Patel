@@ -5,10 +5,16 @@
   "upstream_commit": "850da8ca193b289fc7471eee28362a7a058f8c2e",
   "upstream_freshness": "2026-05-15",
   "upstream_last_validated": "2026-05-22",
-  "indices": {"NIFTY50":50,"NIFTYNEXT50":50,"NIFTYMIDCAP150":150,"NIFTYSMALLCAP250":250,"NIFTYMICROCAP250":250},
+  "indices": {
+    "NIFTY50": 50,
+    "NIFTYNEXT50": 50,
+    "NIFTYMIDCAP150": 150,
+    "NIFTYSMALLCAP250": 250,
+    "NIFTYMICROCAP250": 250
+  },
   "target_interval_rows": 2403,
   "candidate_event_rows": 2611,
-  "official_2026_event_rows": 244,
+  "official_2026_event_rows": 245,
   "dummy_event_rows": 10,
   "note": "This is a maximum-history reconstruction layer. Official current snapshots and official 2026 overrides are retained separately from third-party/inferred historical intervals."
 }

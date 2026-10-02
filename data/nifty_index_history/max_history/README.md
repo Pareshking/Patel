@@ -22,7 +22,7 @@ Reconstruction anchor: **2026-10-02 official NSE/Nifty constituent snapshots**. 
 
 - **2026-10-02:** official anchor, exact 750-symbol identity match.
 - **2026-03-30 checkpoint:** latest official 2026 review deltas replayed and cardinality-checked.
-- **2025-09-30 checkpoint:** reconstructed from the official current anchor and 2025/2026 event chain; cardinality matches, but the checkpoint is **BLOCKED** pending source-backed resolution of AKZOINDIA (Smallcap 250) and SUNDARMHLD (Microcap 250). See `block02_open_gaps.csv`. The SUNDARMHLD exit is inferred only and is not approved evidence.
+- **2025-09-30 checkpoint:** reconstructed from the official current anchor and 2025/2026 event chain; cardinality matches, but the checkpoint is **BLOCKED** pending source-backed resolution of AKZOINDIA (Smallcap 250) and SUNDARMHLD (Microcap 250). See `block02_open_gaps.csv`. The SUNDARMHLD exit is inferred only and is not approved evidence. The official [15 September 2026 replacement notice](https://www.niftyindices.com/Press_Release/ind_prs15092026.pdf) is not yet reconciled with the 10 August notice currently represented in the event ledger; it is the next required source check.
 - Older half-year blocks remain pending until identity-level reconciliation is complete. A passing structural CI run is not an approval of those blocks.
 
 ## Upstream limitations

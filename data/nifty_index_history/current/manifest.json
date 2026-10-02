@@ -1,5 +1,5 @@
 {
-  "retrieved_at_utc": "2026-10-02T07:04:22.186011+00:00",
+  "retrieved_at_utc": "2026-10-02T07:06:32.059190+00:00",
   "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/153.0.0.0 Safari/537.36",
   "sources": {
     "NIFTY50": {
@@ -8,7 +8,9 @@
       "http_status": 200,
       "content_type": "text/csv",
       "bytes": 3344,
+      "raw_rows": 50,
       "rows": 50,
+      "dummy_rows_removed": 0,
       "sha256": "f5ba4027d935ae72879d5c24bbebf0e8439ec8ed504ffdf4175fde69206244b3",
       "columns": [
         "Company Name",
@@ -24,7 +26,9 @@
       "http_status": 200,
       "content_type": "text/csv",
       "bytes": 3303,
+      "raw_rows": 50,
       "rows": 50,
+      "dummy_rows_removed": 0,
       "sha256": "b05337532e755953b588677216012f9b59e69ff39f3dfbbab61e96fc2d724e47",
       "columns": [
         "Company Name",
@@ -40,7 +44,9 @@
       "http_status": 200,
       "content_type": "text/csv",
       "bytes": 9779,
+      "raw_rows": 150,
       "rows": 150,
+      "dummy_rows_removed": 0,
       "sha256": "3fe5312472d1130282acdd7d4a08a765b2c1e6329e92a947deb6f5227545d352",
       "columns": [
         "Company Name",
@@ -56,7 +62,9 @@
       "http_status": 200,
       "content_type": "text/csv",
       "bytes": 16497,
-      "rows": 251,
+      "raw_rows": 251,
+      "rows": 250,
+      "dummy_rows_removed": 1,
       "sha256": "48ed754ed01486a3d60011a867b328f484325385376c7727951503c87a452510",
       "columns": [
         "Company Name",
@@ -64,8 +72,7 @@
         "Symbol",
         "Series",
         "ISIN Code"
-      ],
-      "row_count_status": "EXPECTED_250_ACTUAL_251"
+      ]
     },
     "NIFTYMICROCAP250": {
       "url": "https://nsearchives.nseindia.com/content/indices/ind_niftymicrocap250_list.csv",
@@ -73,7 +80,9 @@
       "http_status": 200,
       "content_type": "text/csv",
       "bytes": 16687,
-      "rows": 254,
+      "raw_rows": 254,
+      "rows": 250,
+      "dummy_rows_removed": 4,
       "sha256": "8cbdd38836d90c74ab1dea0f2b77a4d189de6620b8ecc4fb1b27fda6dfebe641",
       "columns": [
         "Company Name",
@@ -81,8 +90,7 @@
         "Symbol",
         "Series",
         "ISIN Code"
-      ],
-      "row_count_status": "EXPECTED_250_ACTUAL_254"
+      ]
     },
     "NIFTY500": {
       "url": "https://nsearchives.nseindia.com/content/indices/ind_nifty500list.csv",
@@ -90,7 +98,9 @@
       "http_status": 200,
       "content_type": "text/csv",
       "bytes": 32785,
-      "rows": 501,
+      "raw_rows": 501,
+      "rows": 500,
+      "dummy_rows_removed": 1,
       "sha256": "2959bf206239284e145f7aecc65095b18d11556d2642323a70f2d26efe0f5cb3",
       "columns": [
         "Company Name",
@@ -98,8 +108,7 @@
         "Symbol",
         "Series",
         "ISIN Code"
-      ],
-      "row_count_status": "EXPECTED_500_ACTUAL_501"
+      ]
     }
   },
   "smallcap250_parent_crosscheck": {
@@ -184,7 +193,6 @@
       "DELHIVERY",
       "DEVYANI",
       "DOMS",
-      "DUMMYHEG",
       "ECLERX",
       "EIDPARRY",
       "EIHOTEL",
@@ -358,7 +366,9 @@
       "ZFCVINDIA",
       "ZYDUSWELL"
     ],
-    "outside_nifty500": [],
+    "outside_nifty500": [
+      "DUMMYHEG"
+    ],
     "tail_rows": [
       [
         "Welspun Corp Ltd.",
